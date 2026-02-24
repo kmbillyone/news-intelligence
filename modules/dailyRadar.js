@@ -1,105 +1,184 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { execSync } = require('child_process');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const { geminiGroundingRadar, geminiCLI } = require('./geminiHelper');
 
-// Configuration
-const SEARCH_SCRIPT = path.resolve(__dirname, '../../../skills/google-web-search/scripts/search_json.py');
-const PYTHON_BIN = path.resolve(__dirname, '../../../skills/google-web-search/.venv/bin/python'); // Assuming venv exists from skill
-const GEMINI_MODEL = 'gemini-2.5-flash'; // Fast model for clustering
+async function runRadar() {
+    console.log('📡 Starting Global Daily News Radar Sweep (with Grounding)...');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const sweepPrompt = `
+You are performing a global daily news radar sweep.
 
-function searchGoogle(query) {
-    try {
-        console.log(`📡 Radar Scanning: "${query}"...`);
-        // Fallback to system python if venv not found, but try specific first
-        const python = require('fs').existsSync(PYTHON_BIN) ? PYTHON_BIN : 'python3';
-        const cmd = `"${python}" "${SEARCH_SCRIPT}" "${query}"`;
-        const output = execSync(cmd, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }); // 10MB buffer
-        
-        // Parse JSON output from script
-        // The script output might contain logs, so we look for the JSON array
-        const jsonStart = output.indexOf('[');
-        const jsonEnd = output.lastIndexOf(']') + 1;
-        if (jsonStart === -1 || jsonEnd === 0) return [];
-        
-        return JSON.parse(output.substring(jsonStart, jsonEnd));
-    } catch (e) {
-        console.error(`❌ Search failed for "${query}":`, e.message);
-        return [];
-    }
+Search for factual news reports published within the past 24 hours.
+
+Your objective is to identify recent REAL-WORLD DEVELOPMENTS across the following interest areas:
+
+1. Local News
+2. International News
+3. Local Entertainment
+4. Technology and Science
+5. Other Globally Trending Topics
+   (major incidents, emerging issues, unusual developments gaining attention)
+
+--------------------------------
+
+INTAKE BALANCE TARGET
+
+Try to return results in approximately:
+
+- 10–15 Hong Kong Local News
+- 8–12 International News
+- 5–8 Local Entertainment
+- 10–15 Technology and Science
+- 5–10 Other Trending Topics
+
+Avoid overrepresentation of:
+- consumer gadget rumors
+- minor app or feature announcements
+- celebrity personal gossip without wider impact
+
+--------------------------------
+
+PRIORITIZE:
+
+- developments that may evolve across multiple days
+- leadership or policy changes
+- industry-level shifts
+- public safety or environmental risks
+- infrastructure disruptions
+- scientific or engineering breakthroughs
+- notable entertainment industry developments
+
+--------------------------------
+
+DEPRIORITIZE:
+
+- opinion columns
+- listicles
+- promotional content
+- repetitive product leaks
+- viral social media topics without formal reporting
+
+--------------------------------
+
+For each result return:
+
+- title
+- url
+- publication
+- published_time (if available)
+- category:
+    local_news
+    international_news
+    local_entertainment
+    tech_science
+    global_trending
+- 1-line factual description of what happened
+
+Return 40–60 results if available.
+
+Return JSON only.
+`;
+
+    // Step 1: Execute Sweep with Grounding (Gemini 3 Pro)
+    const reports = await geminiGroundingRadar(sweepPrompt);
+    console.log(`✅ Radar sweep found ${reports.length} reports.`);
+    return reports;
 }
 
-async function clusterArticles(articles) {
-    if (!articles || articles.length === 0) return [];
+async function runClustering(reports, existingTopics) {
+    console.log('🧠 Running Topic Clustering & Intelligence Analysis...');
 
-    console.log(`🧠 Gemini Clustering ${articles.length} articles...`);
-    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+    const clusteringPrompt = `
+You are an intelligence analyst maintaining a persistent Topic Memory of real-world developing situations.
 
-    const prompt = `
-    You are a Senior Strategic Intelligence Analyst.
-    Input: A list of raw news articles (JSON).
-    Task: Synthesize these individual reports into broader "Evolving Real-World Situations".
+You are given:
 
-    CRITICAL INSTRUCTION:
-    Do NOT simply list headlines as topics.
-    You must abstract individual reports into broader, ongoing situational contexts.
-    
-    Strategy:
-    1. **Identify the Core Situation**: Ask "What bigger story is this headline a part of?"
-    2. **Group Signals**: Combine related rumors, announcements, and reactions into a single Topic.
-    3. **Analyst Naming**: Name the topic like a dossier file (e.g., "Microsoft Leadership Transition"), not a newspaper headline.
+1. A list of EXISTING TRACKED TOPICS
+2. A batch of recent news reports from the past 24 hours
 
-    Examples:
-    - Input: "Apple rumors suggest multi-day March event" + "Apple supply chain spikes"
-    - BAD Topic: "Apple Rumored Multi-Day Product Launch"
-    - GOOD Topic: "Apple Spring 2026 Product Strategy & Event Planning"
+Your task is to determine whether today's reports:
 
-    - Input: "Phil Spencer resigns" + "Xbox revenue drops"
-    - BAD Topic: "Phil Spencer Resigns from Microsoft"
-    - GOOD Topic: "Microsoft Gaming Leadership Restructuring & Strategy Shift"
+- belong to an EXISTING topic
+OR
+- represent a NEW developing situation that should become a NEW topic
 
-    Output Schema (JSON):
-    [
-      {
-        "label": "The Broader Situation Name (Max 10 words)",
-        "category": "local" | "international" | "tech" | "business",
-        "initial_summary": "A high-level situational summary synthesizing the signals.",
-        "related_links": ["url1", "url2", "url3"] // Include ALL URLs from the grouped articles
-      }
-    ]
+--------------------------------
 
-    Articles to Process:
-    ${JSON.stringify(articles.map(a => ({ title: a.title, snippet: a.description, link: a.link, source: a.source })))}
-    `;
+Rules:
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        
-        // Clean markdown code blocks if present
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(jsonStr);
-    } catch (e) {
-        console.error("❌ Clustering failed:", e);
-        return [];
-    }
+A report should be attached to an existing topic if:
+
+- it describes a continuation of that situation
+- it reflects escalation, response, expansion or new consequences
+- it is a policy, technological or organizational development related to it
+
+Create a NEW topic only if:
+
+- no existing topic adequately represents the situation
+- this represents a distinct emerging development
+- it is likely to evolve across multiple days
+
+Avoid:
+
+- duplicating existing topics under slightly different wording
+- creating topics tied to a single announcement
+- topics that cannot persist across time
+
+--------------------------------
+
+For each situation you identify, return:
+
+- topic_action:
+    attach_existing
+    create_new
+
+If attach_existing:
+
+    topic_id
+
+If create_new:
+
+    situation_label
+    (4–7 word stable reusable label)
+
+Also include:
+
+- novelty:
+    new
+    ongoing
+    escalating
+
+- scope:
+    local
+    international
+
+- category:
+    local_news
+    international_news
+    local_entertainment
+    tech_science
+    global_trending
+
+- signal_strength:
+    strong
+    medium
+    weak
+
+- supporting_reports:
+    list of report indexes (0-based index from the input reports list)
+
+--------------------------------
+
+Return JSON only.
+
+EXISTING TOPICS:
+${JSON.stringify(existingTopics.map(t => ({ topic_id: t.topic_id, label: t.label, category: t.category })))}
+
+Reports:
+${reports.map((r, i) => `${i}. ${r.title} (${r.category}): ${r.description}`).join('\n')}
+`;
+
+    // Step 2: Execute Clustering (Gemini 3 Pro per user preference for complex analysis)
+    const analysis = await geminiCLI(clusteringPrompt, 'gemini-3-pro-preview');
+    return analysis;
 }
 
-module.exports = {
-    async runRadar(queries) {
-        let allArticles = [];
-        for (const q of queries) {
-            const results = searchGoogle(q);
-            allArticles = allArticles.concat(results);
-        }
-        
-        // Deduplicate by link
-        allArticles = Array.from(new Map(allArticles.map(item => [item.link, item])).values());
-        
-        const topics = await clusterArticles(allArticles);
-        return { topics, rawArticles: allArticles };
-    }
-};
+module.exports = { runRadar, runClustering };

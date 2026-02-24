@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const TOPICS_DIR = path.join(__dirname, '../data/topics');
 
@@ -19,41 +20,80 @@ class TopicManager {
     }
 
     getAllTopics() {
+        if (!fs.existsSync(TOPICS_DIR)) return [];
         return fs.readdirSync(TOPICS_DIR)
             .filter(file => file.endsWith('.json'))
-            .map(file => JSON.parse(fs.readFileSync(path.join(TOPICS_DIR, file), 'utf8')));
+            .map(file => {
+                try {
+                    return JSON.parse(fs.readFileSync(path.join(TOPICS_DIR, file), 'utf8'));
+                } catch (e) {
+                    return null;
+                }
+            })
+            .filter(t => t !== null);
     }
 
     saveTopic(topic) {
-        // Validation (Basic Schema Check)
         if (!topic.topic_id || !topic.label) {
             throw new Error("Invalid topic schema: missing topic_id or label");
         }
-
         const filePath = path.join(TOPICS_DIR, `topic_${topic.topic_id}.json`);
         fs.writeFileSync(filePath, JSON.stringify(topic, null, 2));
         return filePath;
     }
 
-    createTopic(label, category, initialSummary, initialArticle) {
-        const topicId = crypto.randomUUID().split('-')[0]; // Short ID
+    updateTopic(topicId, analysis, reports) {
+        const topic = this.getTopic(topicId);
+        if (!topic) return null;
+
+        const now = new Date().toISOString();
+        topic.last_updated = now;
+        topic.status = analysis.novelty || 'ongoing';
+        topic.signal_strength = analysis.signal_strength || 'medium';
+
+        // Add new events to timeline
+        analysis.supporting_reports.forEach(idx => {
+            const r = reports[idx];
+            if (r) {
+                topic.timeline.push({
+                    date: now,
+                    event: r.title,
+                    description: r.description,
+                    publication: r.publication,
+                    url: r.url
+                });
+            }
+        });
+
+        this.saveTopic(topic);
+        return topic;
+    }
+
+    createTopicFromAnalysis(analysis, reports) {
+        const topicId = crypto.randomUUID().split('-')[0];
         const now = new Date().toISOString();
         
+        const firstReport = reports[analysis.supporting_reports[0]] || {};
+
         const newTopic = {
             topic_id: topicId,
-            label: label,
-            category: category || 'general',
-            interest_score: 0.5, // Default start
+            label: analysis.situation_label,
+            category: analysis.category || 'general',
+            interest_score: 0.5,
             last_updated: now,
-            status: 'new',
-            summary: initialSummary,
-            timeline: [{
-                date: now,
-                event: 'Initial Discovery',
-                source_count: 1,
-                sources: [initialArticle.url],
-                update_count: 1
-            }]
+            status: analysis.novelty || 'new',
+            scope: analysis.scope || 'international',
+            signal_strength: analysis.signal_strength || 'medium',
+            timeline: analysis.supporting_reports.map(idx => {
+                const r = reports[idx];
+                return {
+                    date: r.published_time || now,
+                    event: r.title,
+                    description: r.description,
+                    publication: r.publication,
+                    url: r.url
+                };
+            })
         };
         
         this.saveTopic(newTopic);
