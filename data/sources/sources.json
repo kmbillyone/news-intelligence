@@ -1,0 +1,18 @@
+{
+  "local": [
+    "https://news.rthk.hk",
+    "https://news.mingpao.com",
+    "https://www.scmp.com"
+  ],
+  "international": [
+    "https://www.bbc.com/news",
+    "https://www.reuters.com",
+    "https://apnews.com"
+  ],
+  "tech": [
+    "https://techcrunch.com",
+    "https://www.theverge.com",
+    "https://venturebeat.com"
+  ],
+  "discovery": []
+}
