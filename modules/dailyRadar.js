@@ -84,7 +84,7 @@ Return JSON only.
 }
 
 async function runClustering(reports, existingTopics) {
-    console.log('🧠 Running Topic Clustering & Intelligence Analysis...');
+    console.log('🧠 Running Topic Clustering & Intelligence Analysis (without Grounding)...');
 
     const clusteringPrompt = `
 You are an intelligence analyst maintaining a persistent Topic Memory of real-world developing situations.
