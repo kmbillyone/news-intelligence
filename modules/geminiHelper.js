@@ -14,11 +14,31 @@ async function geminiCLI(prompt, model = 'gemini-3-pro-preview') {
         const cmd = `gemini -m "${model}" -p "$(cat ${tmpFile})" --output-format json`;
         const output = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
         
-        let jsonStr = output.trim();
-        // Remove markdown blocks if CLI returns them despite --output-format json
-        jsonStr = jsonStr.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+        const rawParsed = JSON.parse(output.trim());
+        let result = rawParsed;
         
-        return JSON.parse(jsonStr);
+        // If it's an envelope, extract the response
+        if (rawParsed.response && typeof rawParsed.response === 'string') {
+            let jsonStr = rawParsed.response.trim();
+            // Remove markdown blocks if present
+            jsonStr = jsonStr.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+            try {
+                result = JSON.parse(jsonStr);
+            } catch (e) {
+                console.warn(`⚠️ Failed to parse inner response as JSON. Using raw string.`);
+                result = rawParsed.response;
+            }
+        } else if (typeof rawParsed === 'string') {
+             // Sometimes it might return just the string? Unlikely with --output-format json
+             try {
+                result = JSON.parse(rawParsed);
+             } catch(e) {}
+        }
+        
+        return result;
+    } catch (e) {
+        console.error(`❌ geminiCLI failed: ${e.message}`);
+        throw e;
     } finally {
         if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
     }
@@ -26,42 +46,51 @@ async function geminiCLI(prompt, model = 'gemini-3-pro-preview') {
 
 /**
  * Searches Google using the existing grounding-enabled script.
- * Since the user wants to use a specific prompt with grounding,
- * we can either:
- * 1. Use the search_json.py script (which handles the grounding internally).
- * 2. Or if 'gemini' CLI supports grounding, use that. 
- * Based on MEMORY.md, 'scripts/gsearch' or 'search_json.py' is the preferred way for grounding.
- * However, the prompt provided is for a Gemini Sweep with grounding.
  */
-async function geminiGroundingRadar(prompt) {
-    // We use the search_json.py script which is already configured for search grounding.
-    // To pass the custom complex prompt, we need a way to send it to the grounding model.
-    // The search_json.py typically takes a simple query.
-    // For a complex sweep, we might need to use the 'gemini' CLI if it supports grounding,
-    // or a custom script that calls the generative-ai library with grounding enabled.
-    
-    // Check if gsearch supports the full prompt
+async function geminiGroundingRadarPython(prompt, model = null) {
     const gsearchScript = path.resolve(__dirname, '../../../scripts/gsearch');
     const tmpFile = path.join(__dirname, `tmp_radar_prompt_${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, prompt);
 
     try {
-        // gsearch typically takes a query. If we pass the whole prompt, 
-        // the grounding engine will use it as the search context.
+        console.log(`   (Calling Python gsearch for radar sweep using ${model || 'default'}...)`);
+        const env = { ...process.env };
+        if (model) env.GEMINI_MODEL = model;
+
         const cmd = `"${gsearchScript}" "$(cat ${tmpFile})"`;
-        const output = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
+        const output = execSync(cmd, { 
+            encoding: 'utf8', 
+            maxBuffer: 50 * 1024 * 1024,
+            env: env 
+        });
         
         let jsonStr = output.trim();
-        // Extract JSON from potential logging
+        
+        // Find JSON block
         const jsonMatch = jsonStr.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
-        if (jsonMatch) {
-            jsonStr = jsonMatch[0];
+        if (!jsonMatch) {
+            throw new Error("No JSON detected in gsearch output.");
         }
         
-        return JSON.parse(jsonStr);
+        jsonStr = jsonMatch[0];
+        jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
+        
+        // Simple fix for single-quoted keys/strings from Python repr()
+        if (jsonStr.includes("{'") || jsonStr.includes("['")) {
+            jsonStr = jsonStr.replace(/'/g, '"');
+        }
+        
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.error || parsed.status === 'error') {
+            throw new Error(parsed.error?.message || parsed.error || "Upstream API Error");
+        }
+        return parsed;
+    } catch (e) {
+        console.error(`❌ geminiGroundingRadarPython failed: ${e.message}`);
+        throw e;
     } finally {
         if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
     }
 }
 
-module.exports = { geminiCLI, geminiGroundingRadar };
+module.exports = { geminiCLI, geminiGroundingRadarPython };

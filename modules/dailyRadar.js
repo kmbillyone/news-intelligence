@@ -1,4 +1,4 @@
-const { geminiGroundingRadar, geminiCLI } = require('./geminiHelper');
+const { geminiCLI, geminiGroundingRadarPython } = require('./geminiHelper');
 
 async function runRadar() {
     console.log('📡 Starting Global Daily News Radar Sweep (with Grounding)...');
@@ -77,8 +77,80 @@ Return 40–60 results if available.
 Return JSON only.
 `;
 
-    // Step 1: Execute Sweep with Grounding (Gemini 3 Pro)
-    const reports = await geminiGroundingRadar(sweepPrompt);
+    // Strategy:
+    // 1. Try Gemini CLI with gemini-3-pro-preview (User confirms it has grounding)
+    // 2. If fail, fallback to Python script with gemini-3-pro-preview
+    // 3. If fail, fallback to Python script with gemini-2.5-flash
+
+    let reports;
+    try {
+        console.log('🔹 Attempt 1: Gemini CLI (gemini-3-pro-preview)...');
+        reports = await geminiCLI(sweepPrompt, 'gemini-3-pro-preview');
+    } catch (e) {
+        console.warn(`⚠️ CLI Attempt failed: ${e.message}`);
+        console.log('🔹 Attempt 2: Python Script (gemini-3-pro-preview)...');
+        try {
+            reports = await geminiGroundingRadarPython(sweepPrompt, 'gemini-3-pro-preview');
+        } catch (innerE) {
+            console.warn(`⚠️ Python (3-pro) failed: ${innerE.message}`);
+            console.log('🔹 Attempt 3: Python Script (gemini-2.5-flash)...');
+            try {
+                reports = await geminiGroundingRadarPython(sweepPrompt, 'gemini-2.5-flash');
+            } catch (finalE) {
+                console.error('❌ All radar sweep attempts failed.');
+                throw finalE;
+            }
+        }
+    }
+    
+    if (!reports) {
+        throw new Error("Failed to retrieve radar reports (null/undefined) after all attempts.");
+    }
+
+    console.log("DEBUG: Raw reports type:", typeof reports);
+    if (typeof reports === 'string') {
+        try {
+            reports = JSON.parse(reports);
+        } catch (e) {
+            console.log("DEBUG: Could not parse string as JSON directly.");
+        }
+    }
+
+    // Normalize: If model returned { results: [...] } instead of [...]
+    if (!Array.isArray(reports)) {
+        console.log("DEBUG: Normalizing reports object. Keys:", Object.keys(reports));
+        if (reports.response && typeof reports.response === 'string') {
+             // Maybe the 'response' field contains the JSON?
+             try {
+                 const inner = JSON.parse(reports.response.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim());
+                 reports = inner;
+             } catch (e) {
+                 console.log("DEBUG: reports.response is not JSON.");
+             }
+        }
+        
+        if (!Array.isArray(reports)) {
+            if (reports.results && Array.isArray(reports.results)) reports = reports.results;
+            else if (reports.data && Array.isArray(reports.data)) reports = reports.data;
+            else if (reports.items && Array.isArray(reports.items)) reports = reports.items;
+            else if (reports.news && Array.isArray(reports.news)) reports = reports.news;
+            else {
+                // Last resort: try to find any array property
+                const keys = Object.keys(reports);
+                for (const k of keys) {
+                    if (Array.isArray(reports[k])) {
+                        reports = reports[k];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!Array.isArray(reports) || reports.length === 0) {
+        throw new Error("Radar response is not a valid array of reports.");
+    }
+
     console.log(`✅ Radar sweep found ${reports.length} reports.`);
     return reports;
 }
@@ -176,9 +248,25 @@ Reports:
 ${reports.map((r, i) => `${i}. ${r.title} (${r.category}): ${r.description}`).join('\n')}
 `;
 
-    // Step 2: Execute Clustering (Gemini 3 Pro per user preference for complex analysis)
-    const analysis = await geminiCLI(clusteringPrompt, 'gemini-3-pro-preview');
-    return analysis;
+    // Step 2: Execute Clustering (Gemini 3 Pro CLI)
+    console.log('🔹 Attempting Clustering with gemini-3-pro-preview (with retry)...');
+    try {
+        const analysis = await geminiCLI(clusteringPrompt, 'gemini-3-pro-preview');
+        return analysis;
+    } catch (e) {
+        console.warn(`⚠️ Clustering attempt 1 failed: ${e.message}. Retrying in 5s...`);
+        try {
+            // Wait 5 seconds
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            // Try with flash as fallback if pro fails repeatedly
+            console.log('🔹 Fallback: Attempting Clustering with gemini-3-flash-preview...');
+            const analysis = await geminiCLI(clusteringPrompt, 'gemini-3-flash-preview');
+            return analysis;
+        } catch (innerE) {
+            console.error("❌ All clustering attempts failed.");
+            throw innerE;
+        }
+    }
 }
 
 module.exports = { runRadar, runClustering };

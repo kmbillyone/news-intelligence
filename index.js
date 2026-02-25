@@ -19,6 +19,12 @@ async function main() {
         return;
     }
 
+    // Save Raw Reports immediately to prevent data loss on clustering failure
+    const dateStr = new Date().toISOString().split('T')[0];
+    const rawFile = path.join(RAW_DIR, `${dateStr}.json`);
+    fs.writeFileSync(rawFile, JSON.stringify(reports, null, 2));
+    console.log(`✅ Raw reports saved to ${rawFile}`);
+
     // 2. Load Existing Topics
     const topicMgr = new TopicManager();
     const existingTopics = topicMgr.getAllTopics();
@@ -35,11 +41,11 @@ async function main() {
         return;
     }
 
-    // 4. Save Raw Reports (Daily Log)
-    const dateStr = new Date().toISOString().split('T')[0];
-    const rawFile = path.join(RAW_DIR, `${dateStr}.json`);
-    fs.writeFileSync(rawFile, JSON.stringify(reports, null, 2));
-    console.log(`✅ Raw reports saved to ${rawFile}`);
+    // 4. Save Raw Reports (Daily Log) - Already saved earlier
+    // const dateStr = new Date().toISOString().split('T')[0];
+    // const rawFile = path.join(RAW_DIR, `${dateStr}.json`);
+    // fs.writeFileSync(rawFile, JSON.stringify(reports, null, 2));
+    // console.log(`✅ Raw reports saved to ${rawFile}`);
 
     // 5. Update Topic Memory
     console.log('💾 Synchronizing Topic Memory...');

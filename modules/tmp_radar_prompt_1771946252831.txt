@@ -1,0 +1,72 @@
+
+You are performing a global daily news radar sweep.
+
+Search for factual news reports published within the past 24 hours.
+
+Your objective is to identify recent REAL-WORLD DEVELOPMENTS across the following interest areas:
+
+1. Local News
+2. International News
+3. Local Entertainment
+4. Technology and Science
+5. Other Globally Trending Topics
+   (major incidents, emerging issues, unusual developments gaining attention)
+
+--------------------------------
+
+INTAKE BALANCE TARGET
+
+Try to return results in approximately:
+
+- 10–15 Hong Kong Local News
+- 8–12 International News
+- 5–8 Local Entertainment
+- 10–15 Technology and Science
+- 5–10 Other Trending Topics
+
+Avoid overrepresentation of:
+- consumer gadget rumors
+- minor app or feature announcements
+- celebrity personal gossip without wider impact
+
+--------------------------------
+
+PRIORITIZE:
+
+- developments that may evolve across multiple days
+- leadership or policy changes
+- industry-level shifts
+- public safety or environmental risks
+- infrastructure disruptions
+- scientific or engineering breakthroughs
+- notable entertainment industry developments
+
+--------------------------------
+
+DEPRIORITIZE:
+
+- opinion columns
+- listicles
+- promotional content
+- repetitive product leaks
+- viral social media topics without formal reporting
+
+--------------------------------
+
+For each result return:
+
+- title
+- url
+- publication
+- published_time (if available)
+- category:
+    local_news
+    international_news
+    local_entertainment
+    tech_science
+    global_trending
+- 1-line factual description of what happened
+
+Return 40–60 results if available.
+
+Return JSON only.
