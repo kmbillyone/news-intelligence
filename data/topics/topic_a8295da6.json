@@ -1,0 +1,47 @@
+{
+  "topic_id": "a8295da6",
+  "label": "International Transportation and Infrastructure Safety Incidents",
+  "category": "global_trending",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "Construction Vehicle Falls Into Taipei River",
+      "description": "A major accident at a Taipei construction site left one worker critical after a vehicle plunged into a river near the Minquan Bridge.",
+      "publication": "Taipei Times",
+      "url": "https://taipeitimes.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "India Grounds Indigenous Tejas Fighter Fleet",
+      "description": "Following a third major accident, India grounded its fleet of Tejas Light Combat Aircraft, forcing them to miss a major firepower demonstration.",
+      "publication": "Economic Times",
+      "url": "https://economictimes.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "VSR Ventures Aircraft Grounded in India Over Safety",
+      "description": "India's aviation regulator grounded four aircraft operated by VSR Ventures due to safety violations following a fatal crash earlier in the year.",
+      "publication": "Sunday Guardian Live",
+      "url": "https://sundayguardianlive.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Oman Reports 13% Jump in Serious Traffic Accidents",
+      "description": "Oman witnessed a significant 13% surge in major traffic accidents, leading to over 77,000 insurance claims and rising medical expenses.",
+      "publication": "Muscat Daily",
+      "url": "https://muscatdaily.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Fires Disrupt Lagos and Cape Town Airport Operations",
+      "description": "Unrelated fires on the same day caused operational disruptions at both the Lagos departures hall and Cape Town International Airport's IT systems.",
+      "publication": "OkayAfrica",
+      "url": "https://okayafrica.com/"
+    }
+  ]
+}

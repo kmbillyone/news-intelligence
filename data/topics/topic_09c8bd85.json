@@ -1,0 +1,35 @@
+{
+  "topic_id": "09c8bd85",
+  "label": "Evolving AI Capabilities, Impact & Critical Discourse",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.348Z",
+  "status": "ongoing",
+  "summary": "The AI landscape is characterized by both rapid developmental advances, such as agentic AI and refined medical imaging algorithms for tracking brain pathways, and ongoing scrutiny regarding its real-world impact. This includes industry debate over AI's environmental footprint (OpenAI CEO's claims) and its current, measured contribution to broader economic growth (Goldman Sachs report).",
+  "timeline": [
+    {
+      "date": "2026-02-23T23:30:59.855Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.pcmag.com/news/openai-ceo-concerns-about-ai-using-too-much-water-are-totally-fake"
+      ],
+      "update_count": 1
+    },
+    {
+      "date": "2026-02-25T00:36:59.348Z",
+      "event": "Hong Kong Voice Actors Protest Unauthorized AI Training",
+      "description": "Over 180 Hong Kong voice actors issued a joint statement opposing the unauthorized use of their voice samples for AI model training.",
+      "publication": "The Standard",
+      "url": "https://thestandard.com.hk/"
+    },
+    {
+      "date": "2026-02-25T00:36:59.348Z",
+      "event": "Generative AI Matches Human Experts in Complex Medical Datasets",
+      "description": "New research demonstrates that generative AI models can match or exceed human expert performance in interpreting complex medical data.",
+      "publication": "Science Daily",
+      "url": "https://sciencedaily.com/"
+    }
+  ],
+  "signal_strength": "medium"
+}

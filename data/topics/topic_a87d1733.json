@@ -1,0 +1,54 @@
+{
+  "topic_id": "a87d1733",
+  "label": "Hong Kong Entertainment and Celebrity News",
+  "category": "local_entertainment",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "local",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "'Sons of the Neon Night' Leads 44th HK Film Award Nominations",
+      "description": "Nominations for the 44th Hong Kong Film Awards were announced, with 'Sons of the Neon Night' securing the most nods.",
+      "publication": "South China Morning Post",
+      "url": "https://scmp.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "'Pegasus 3' Dominates CNY Box Office Opening",
+      "description": "The highly anticipated sequel 'Pegasus 3' led the box office on the opening day of the 2026 Chinese New Year.",
+      "publication": "DramaPanda",
+      "url": "https://dramapanda.com/"
+    },
+    {
+      "date": "2026-02-23",
+      "event": "Charmaine Sheh Shares Rare Selfie with Chow Yun Fat",
+      "description": "Actress Charmaine Sheh thrilled fans by posting a reunion photo with legendary actor Chow Yun Fat from a festive gathering.",
+      "publication": "Hype Malaysia",
+      "url": "https://hype.my/"
+    },
+    {
+      "date": "2026-02-24",
+      "event": "Veteran Actor Bill Shek Sau Plays Saxophone at 78",
+      "description": "78-year-old Hong Kong actor Bill Shek Sau impressed netizens with a lively saxophone performance shared online.",
+      "publication": "Dimsum Daily",
+      "url": "https://dimsumdaily.hk/"
+    },
+    {
+      "date": "2026-02-21",
+      "event": "Jaime Chik Sparkles Discussion with Natural Grey Hair Look",
+      "description": "64-year-old veteran actress Jaime Chik garnered widespread praise and online discussion after embracing her natural grey hair.",
+      "publication": "Dimsum Daily",
+      "url": "https://dimsumdaily.hk/"
+    },
+    {
+      "date": "2026-02-23",
+      "event": "Jackie Chan and Son Jaycee Reunite in Milan",
+      "description": "Action star Jackie Chan and his son Jaycee were spotted reuniting in Milan during the fashion week festivities.",
+      "publication": "Dimsum Daily",
+      "url": "https://dimsumdaily.hk/"
+    }
+  ]
+}

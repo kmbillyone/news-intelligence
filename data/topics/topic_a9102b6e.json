@@ -1,0 +1,28 @@
+{
+  "topic_id": "a9102b6e",
+  "label": "Hong Kong Major Infrastructure Development",
+  "category": "local",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.348Z",
+  "status": "ongoing",
+  "summary": "Hong Kong International Airport is proceeding with its expansion plans, with the second terminal slated for full opening and serving multiple airlines from May 27. This development highlights ongoing investment in the city's critical transport infrastructure and economic capacity.",
+  "timeline": [
+    {
+      "date": "2026-02-23T23:30:59.855Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.scmp.com/news/hong-kong/transport/article/3254540/hong-kong-airport-second-terminal-fully-open-serve-15-airlines-may-27"
+      ],
+      "update_count": 1
+    },
+    {
+      "date": "2026-02-25T00:36:59.348Z",
+      "event": "MTR Tsuen Wan Line to Launch New Signaling System",
+      "description": "The MTR Corporation announced that the Tsuen Wan Line will implement its highly anticipated new signaling system in March 2026.",
+      "publication": "NewsNow",
+      "url": "https://newsnow.com/"
+    }
+  ],
+  "signal_strength": "medium"
+}

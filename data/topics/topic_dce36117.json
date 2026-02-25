@@ -1,0 +1,19 @@
+{
+  "topic_id": "dce36117",
+  "label": "International Maritime Safety and Fishing Regulation",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "Cape Town Agreement on Fishing Vessel Safety Ratified",
+      "description": "An international treaty aimed at combating illegal fishing and improving vessel safety standards has received enough ratifications to enter into force.",
+      "publication": "Straits Times",
+      "url": "https://straitstimes.com/"
+    }
+  ]
+}

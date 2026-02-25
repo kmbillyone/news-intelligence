@@ -1,0 +1,35 @@
+{
+  "topic_id": "2d1011d2",
+  "label": "Hong Kong Court Rejects Activist Appeals in National Security Case",
+  "category": "international",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.348Z",
+  "status": "escalating",
+  "summary": "A Hong Kong court rejected all remaining appeals in the city's major national security case, upholding convictions and sentences for pro-democracy activists.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://apnews.com/article/hong-kong-appeals-court-national-security-activists-sentences-267536814"
+      ],
+      "update_count": 1
+    },
+    {
+      "date": "2026-02-25T00:36:59.348Z",
+      "event": "Hong Kong 47 Subversion Case Appeals Rejected",
+      "description": "Hong Kong's Court of Appeal upheld prison terms for 12 activists involved in the 'Hong Kong 47' subversion case.",
+      "publication": "The Asia Cable",
+      "url": "https://theasiacable.com/"
+    },
+    {
+      "date": "2026-02-25T00:36:59.348Z",
+      "event": "Jimmy Lai Sedition Conviction Upheld by Top Court",
+      "description": "Hong Kong's top court upheld the sedition and collusion conviction of pro-democracy publisher Jimmy Lai.",
+      "publication": "Al Jazeera",
+      "url": "https://aljazeera.com/"
+    }
+  ],
+  "signal_strength": "strong"
+}

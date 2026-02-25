@@ -1,0 +1,20 @@
+{
+  "topic_id": "5df21bc1",
+  "label": "Ex-VP Charged with $67,000 Bribery in Hong Kong",
+  "category": "local",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "A former vice president of a secretarial company in Hong Kong has been charged with accepting $67,000 in bribes to divert clients to a rival firm.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.thestandard.com.hk/breaking-news/175134/Ex-vice-president-of-secretarial-company-charged-with-taking-$67,000-in-bribes-to-divert-clients-to-rival-firm"
+      ],
+      "update_count": 1
+    }
+  ]
+}

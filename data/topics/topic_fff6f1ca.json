@@ -1,0 +1,19 @@
+{
+  "topic_id": "fff6f1ca",
+  "label": "Aftermath of Major Louvre Jewel Theft",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "strong",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "Louvre Museum Director Resigns After 88M Euro Heist",
+      "description": "Laurence des Cars resigned as director of the Louvre following a massive theft of French Crown jewels in late 2025.",
+      "publication": "KPBS",
+      "url": "https://kpbs.org/"
+    }
+  ]
+}

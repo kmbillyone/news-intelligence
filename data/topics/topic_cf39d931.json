@@ -1,0 +1,20 @@
+{
+  "topic_id": "cf39d931",
+  "label": "Hong Kong National Security Law Enforcement",
+  "category": "international",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T23:30:59.854Z",
+  "status": "new",
+  "summary": "Hong Kong's legal system continues to aggressively apply the national security law, with appeals dismissed for prominent activists and new charges brought against commentators, signaling a deepening crackdown on dissent and free speech. This ongoing enforcement has significant implications for civil liberties in the region.",
+  "timeline": [
+    {
+      "date": "2026-02-23T23:30:59.854Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.aljazeera.com/news/2026/2/21/hong-kong-court-rejects-appeal-in-landmark-subversion-case"
+      ],
+      "update_count": 1
+    }
+  ]
+}

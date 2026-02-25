@@ -1,0 +1,20 @@
+{
+  "topic_id": "9e390bac",
+  "label": "Samsung Integrates Perplexity AI into Galaxy AI for S26",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "Samsung announced the integration of AI-powered search engine Perplexity into its Galaxy AI, launching with the upcoming S26 series.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.pcmag.com/news/samsung-adds-support-for-perplexity-in-galaxy-ai-launches-on-s26-series"
+      ],
+      "update_count": 1
+    }
+  ]
+}

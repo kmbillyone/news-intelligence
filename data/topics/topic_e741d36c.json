@@ -1,0 +1,20 @@
+{
+  "topic_id": "e741d36c",
+  "label": "Major Snowstorm Hits US Northeast, New York Shuts Down",
+  "category": "local",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "A major snowstorm forced New York to implement travel bans and school closures as it hit the United States northeast.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.ndtv.com/world-news/new-york-orders-travel-ban-schools-shut-down-as-major-storm-hits-us-3753130"
+      ],
+      "update_count": 1
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "topic_id": "277e55c6",
+  "label": "International Sports Events in Hong Kong",
+  "category": "local_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.349Z",
+  "status": "new",
+  "scope": "local",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "Pickleball Hong Kong Slam Announced for October 2026",
+      "description": "PPA Tour Asia announced the Hong Kong Slam as its 2026 finale, bringing professional pickleball to the city with a US$1.1 million prize pool.",
+      "publication": "Taiwan News",
+      "url": "https://taiwannews.com.tw/"
+    }
+  ]
+}

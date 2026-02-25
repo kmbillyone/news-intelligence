@@ -1,0 +1,20 @@
+{
+  "topic_id": "31993e38",
+  "label": "Hong Kong Local Animal Cruelty Incidents",
+  "category": "local",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T23:30:59.855Z",
+  "status": "new",
+  "summary": "A disturbing trend of animal cruelty has emerged in Hong Kong's New Territories, with multiple dogs found poisoned to death within a single week. These incidents are raising significant local community concerns about public safety and animal welfare.",
+  "timeline": [
+    {
+      "date": "2026-02-23T23:30:59.855Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.scmp.com/news/hong-kong/society/article/3254958/5-dogs-found-poisoned-death-hong-kongs-new-territories-single-week"
+      ],
+      "update_count": 1
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "topic_id": "18a47d9b",
+  "label": "Panama Seizure of Hong Kong-Operated Ports",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.347Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "strong",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "Panama Seizes Ports from Hong Kong-Based Operator",
+      "description": "The Hong Kong government lodged stern protests after Panama seized two crucial ports operated by Hong Kong-based CK Hutchison on the Panama Canal.",
+      "publication": "News4Jax",
+      "url": "https://news4jax.com/"
+    }
+  ]
+}

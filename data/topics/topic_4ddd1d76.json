@@ -1,0 +1,35 @@
+{
+  "topic_id": "4ddd1d76",
+  "label": "Hong Kong Businesses React to Trump's Potential New Tariffs",
+  "category": "business",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.349Z",
+  "status": "escalating",
+  "summary": "Hong Kong businesses and financial officials believe the impact of potential new 15% global tariffs from Trump will be limited.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.scmp.com/news/china/article/3254690/hong-kong-businesses-take-trumps-latest-tariff-surprise-stride"
+      ],
+      "update_count": 1
+    },
+    {
+      "date": "2026-02-25T00:36:59.349Z",
+      "event": "Hong Kong Stock Market Drops 1.8% Amid Trade Uncertainty",
+      "description": "Hong Kong shares tumbled 489 points due to renewed US trade policy uncertainty and broad weakness in the technology sector.",
+      "publication": "Indo Premier",
+      "url": "https://indopremier.com/"
+    },
+    {
+      "date": "2026-02-25T00:36:59.349Z",
+      "event": "Global Markets Rattled by US 15% Tariff Proposal",
+      "description": "Fears of a transatlantic trade war escalated as a proposed 15% global tariff by the US triggered broad market uncertainty.",
+      "publication": "India Times",
+      "url": "https://indiatimes.com/"
+    }
+  ],
+  "signal_strength": "strong"
+}

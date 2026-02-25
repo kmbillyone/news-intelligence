@@ -1,0 +1,19 @@
+{
+  "topic_id": "783fdd61",
+  "label": "Hong Kong Tourism and Economic Recovery",
+  "category": "local_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.348Z",
+  "status": "new",
+  "scope": "local",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "Spring Festival Tourism Boosts Hong Kong Economy",
+      "description": "Hong Kong welcomed over 1.77 million visitors during the Lunar New Year Golden Week, providing a much-needed boost to local retail.",
+      "publication": "Caixin Global",
+      "url": "https://caixinglobal.com/"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "topic_id": "4fdefd7a",
+  "label": "High-Tech Industrial and Energy Advancements",
+  "category": "tech_science",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "Tandem Perovskite Solar Cells Surpass 34% Efficiency",
+      "description": "Hybrid solar cells combining silicon and perovskite achieved a record efficiency of over 34%, boosting small-scale renewable energy capabilities.",
+      "publication": "CAS",
+      "url": "https://cas.org/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "ASML Announces EUV Chipmaking Speed Breakthrough",
+      "description": "Semiconductor equipment leader ASML unveiled a new 1,000-watt light source designed to increase EUV chipmaking speed by 50% by 2030.",
+      "publication": "Tom's Hardware",
+      "url": "https://tomshardware.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Metal-Ion Batteries Reach Commercialization for Energy Storage",
+      "description": "Safer alternative battery technologies, such as sodium-ion and iron-air, are entering the commercial market for large-scale renewable energy storage.",
+      "publication": "CAS",
+      "url": "https://cas.org/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Base Molecular Resonance Unveils Quantum Detection Advance",
+      "description": "BMRT announced a significant leap in its quantum resonance detection platform, vastly improving precision targeting control and signal-to-noise ratio.",
+      "publication": "PR Newswire",
+      "url": "https://prnewswire.com/"
+    }
+  ]
+}

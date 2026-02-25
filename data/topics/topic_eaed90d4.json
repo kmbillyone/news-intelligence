@@ -1,0 +1,40 @@
+{
+  "topic_id": "eaed90d4",
+  "label": "Russia-Ukraine War Anniversary and Global Response",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.349Z",
+  "status": "escalating",
+  "scope": "international",
+  "signal_strength": "strong",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "Fourth Anniversary of Russia-Ukraine War Marked",
+      "description": "Marking the fourth year since Russia's invasion, President Zelenskyy declared Ukrainians remain unbroken as European leaders visited Kyiv.",
+      "publication": "News and Sentinel",
+      "url": "https://newsandsentinel.com/"
+    },
+    {
+      "date": "2026-02-24",
+      "event": "UK Announces Largest Sanctions Package Against Russia",
+      "description": "The UK government rolled out its most extensive sanctions package since 2022, targeting Russian oil revenues and military suppliers.",
+      "publication": "UK Government",
+      "url": "https://www.gov.uk/"
+    },
+    {
+      "date": "2026-02-24",
+      "event": "UN General Assembly Calls for Ukraine Ceasefire",
+      "description": "The UN General Assembly passed a resolution demanding an immediate ceasefire and a comprehensive peace agreement in Ukraine.",
+      "publication": "News and Sentinel",
+      "url": "https://newsandsentinel.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "South Africa Repatriates Citizens Lured to Fight in Ukraine",
+      "description": "The South African government is working to bring home 11 men who were allegedly lured into fighting for Russian forces in Ukraine.",
+      "publication": "OkayAfrica",
+      "url": "https://okayafrica.com/"
+    }
+  ]
+}

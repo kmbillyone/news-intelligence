@@ -1,0 +1,28 @@
+{
+  "topic_id": "601615a6",
+  "label": "Honor to Unveil First Humanoid Robot at MWC 2026",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.349Z",
+  "status": "ongoing",
+  "summary": "Honor announced plans to showcase its first humanoid robot at MWC 2026, marking a significant step in robotics.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.796Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.pcmag.com/news/honor-teases-new-humanoid-robots-first-model-will-arrive-at-mwc-2026"
+      ],
+      "update_count": 1
+    },
+    {
+      "date": "2026-02-25T00:36:59.349Z",
+      "event": "Hong Kong Tech Delegation Heading to MWC 2026",
+      "description": "A delegation of 21 Hong Kong tech companies will showcase local innovations at the Mobile World Congress in Barcelona.",
+      "publication": "ACN Newswire",
+      "url": "https://acnnewswire.com/"
+    }
+  ],
+  "signal_strength": "medium"
+}

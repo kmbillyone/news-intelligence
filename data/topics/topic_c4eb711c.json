@@ -1,0 +1,33 @@
+{
+  "topic_id": "c4eb711c",
+  "label": "Breakthroughs in Medical Research and Detection",
+  "category": "tech_science",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "Subtle Brain Blood Flow Changes Linked to Early Alzheimer's",
+      "description": "Scientists discovered that subtle changes in blood flow and oxygen use in the brain could enable noninvasive early detection of Alzheimer's.",
+      "publication": "Science Daily",
+      "url": "https://sciencedaily.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Pico-C Technology Visualizes 3D Genome Structure",
+      "description": "The novel Pico-C technology allows scientists to view the 3D architecture of DNA in unprecedented detail, offering clues to inflammatory diseases.",
+      "publication": "EurekAlert",
+      "url": "https://eurekalert.org/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Targeted Sodium Channel Drugs Offer Opioid-Free Pain Relief",
+      "description": "Advancements in targeted sodium channel drugs are paving the way for effective, non-addictive, opioid-free pain management alternatives.",
+      "publication": "CAS",
+      "url": "https://cas.org/"
+    }
+  ]
+}

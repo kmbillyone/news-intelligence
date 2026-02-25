@@ -1,0 +1,26 @@
+{
+  "topic_id": "17c9d34d",
+  "label": "Escalating Security Risks in Middle East",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.349Z",
+  "status": "escalating",
+  "scope": "international",
+  "signal_strength": "strong",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "US State Department Orders Personnel to Leave Beirut",
+      "description": "The US ordered non-emergency personnel out of its Beirut embassy due to escalating security risks and Iran tensions.",
+      "publication": "Just Security",
+      "url": "https://justsecurity.org/"
+    },
+    {
+      "date": "2026-02-24",
+      "event": "Iran Reportedly Nearing Anti-Ship Missile Deal with China",
+      "description": "Reports indicate Iran is close to finalizing a major purchase of anti-ship cruise missiles from China amid regional military tensions.",
+      "publication": "Just Security",
+      "url": "https://justsecurity.org/"
+    }
+  ]
+}

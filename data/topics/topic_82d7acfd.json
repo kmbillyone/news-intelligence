@@ -1,0 +1,20 @@
+{
+  "topic_id": "82d7acfd",
+  "label": "Microsoft Gaming Head Phil Spencer Resigns; Asha Sharma Takes Over",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "Phil Spencer resigned as head of Microsoft Gaming, with Asha Sharma taking over and promising a renewed focus on Xbox.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.pcmag.com/news/microsoft-gaming-boss-resigns-replacement-promises-return-to-xbox"
+      ],
+      "update_count": 1
+    }
+  ]
+}

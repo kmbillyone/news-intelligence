@@ -1,0 +1,20 @@
+{
+  "topic_id": "60de3d2f",
+  "label": "Apple Rumored Multi-Day Product Launch in March",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.796Z",
+  "status": "new",
+  "summary": "Apple is rumored to be planning a multi-day launch event in March, potentially unveiling five new products including iPad updates.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.796Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.pcmag.com/news/apples-march-launch-may-be-different-rumor-says-5-products-over-3-days"
+      ],
+      "update_count": 1
+    }
+  ]
+}

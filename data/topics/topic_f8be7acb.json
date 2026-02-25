@@ -1,0 +1,20 @@
+{
+  "topic_id": "f8be7acb",
+  "label": "AI Enterprise & Consumer Integration Strategies",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T23:30:59.855Z",
+  "status": "new",
+  "summary": "Major companies are intensifying AI integration efforts across enterprise operations, consumer devices, and marketing. This includes new partnerships for AI scaling (TCS/ServiceNow), dedicated AI hardware for PCs (Nvidia), AI-powered wearables (Apple), industrial AI applications (Hitachi), and conversational AI in media platforms (YouTube), indicating a broad strategic push to embed AI into everyday products and business processes.",
+  "timeline": [
+    {
+      "date": "2026-02-23T23:30:59.855Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://tech.economictimes.indiatimes.com/news/information-technology/tcs-servicenow-enter-multi-year-partnership-to-scale-enterprise-ai-adoption/117410857"
+      ],
+      "update_count": 1
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "topic_id": "c44d9de5",
+  "label": "Hong Kong to Buy Homes Damaged in Deadly High-Rise Fire",
+  "category": "local",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "Hong Kong authorities plan to purchase homes devastated by a deadly high-rise fire, offering compensation to affected residents.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.channelnewsasia.com/asia/hong-kong-plans-buy-homes-devastated-deadly-high-rise-fire-2867061"
+      ],
+      "update_count": 1
+    }
+  ]
+}

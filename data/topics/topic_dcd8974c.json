@@ -1,0 +1,19 @@
+{
+  "topic_id": "dcd8974c",
+  "label": "Major Financial Crimes in Hong Kong",
+  "category": "local_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.348Z",
+  "status": "new",
+  "scope": "local",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-24",
+      "event": "Network Engineer Arrested in HK$20m Crypto Theft",
+      "description": "A 34-year-old network engineer was arrested in Hong Kong for allegedly stealing over HK$20 million in cryptocurrency from clients.",
+      "publication": "The Standard",
+      "url": "https://thestandard.com.hk/"
+    }
+  ]
+}

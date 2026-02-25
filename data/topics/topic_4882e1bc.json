@@ -1,0 +1,20 @@
+{
+  "topic_id": "4882e1bc",
+  "label": "Greenland Rejects Trump's Offer of Hospital Ship",
+  "category": "international",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.928Z",
+  "status": "new",
+  "summary": "Greenland declined an offer from Donald Trump for a hospital ship, following a previous incident with a U.S. submarine evacuation.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.928Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://globalnews.ca/world/10291512/greenland-rejects-trump-hospital-ship-offer/"
+      ],
+      "update_count": 1
+    }
+  ]
+}

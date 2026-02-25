@@ -1,0 +1,20 @@
+{
+  "topic_id": "fe6a0c5f",
+  "label": "Hong Kong Airport's Second Terminal to Fully Open May 27",
+  "category": "local",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "Hong Kong International Airport's second terminal is slated for full opening on May 27, serving 15 airlines.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.scmp.com/news/hong-kong/transport/article/3254678/hong-kong-airport-second-terminal-fully-open-serve-15-airlines-may-27"
+      ],
+      "update_count": 1
+    }
+  ]
+}

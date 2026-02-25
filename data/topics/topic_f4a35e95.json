@@ -1,0 +1,20 @@
+{
+  "topic_id": "f4a35e95",
+  "label": "Google Play Blocked 1.75 Million Policy-Violating Apps in 2025",
+  "category": "tech",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.927Z",
+  "status": "new",
+  "summary": "Google Play removed 1.75 million apps in 2025 due to policy violations, crediting improved developer verification and review processes.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.927Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.pcmag.com/news/google-blocked-175m-policy-violating-apps-from-google-play-in-2025"
+      ],
+      "update_count": 1
+    }
+  ]
+}

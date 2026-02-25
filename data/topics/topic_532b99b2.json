@@ -1,0 +1,19 @@
+{
+  "topic_id": "532b99b2",
+  "label": "Legal Case Against Achraf Hakimi",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "Morocco Captain Achraf Hakimi Faces Trial",
+      "description": "Moroccan national football team captain Achraf Hakimi is scheduled to face trial in France over rape allegations, which he has vehemently denied.",
+      "publication": "OkayAfrica",
+      "url": "https://okayafrica.com/"
+    }
+  ]
+}

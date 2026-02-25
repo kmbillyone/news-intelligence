@@ -1,0 +1,33 @@
+{
+  "topic_id": "0bf7cc5b",
+  "label": "Advances in Physical Sciences and Environment",
+  "category": "tech_science",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "new",
+  "scope": "international",
+  "signal_strength": "medium",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "Chemists Create Long-Sought Silicon-Based Aromatic Compound",
+      "description": "Researchers at Saarland University successfully synthesized a stable silicon-based aromatic compound, marking a major breakthrough in chemistry.",
+      "publication": "Science Daily",
+      "url": "https://sciencedaily.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "New Detailed Map of Milky Way's Magnetic Field Created",
+      "description": "Astronomers unveiled a highly detailed map of the Milky Way's magnetic field, revealing unexpected twists and internal structures.",
+      "publication": "Science Daily",
+      "url": "https://sciencedaily.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Melting Land Ice Now Primary Driver of Sea Level Rise",
+      "description": "A comprehensive 30-year analysis confirmed that the melting of land-based ice has overtaken thermal expansion as the main cause of rising sea levels.",
+      "publication": "Science Daily",
+      "url": "https://sciencedaily.com/"
+    }
+  ]
+}

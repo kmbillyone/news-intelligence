@@ -1,0 +1,28 @@
+{
+  "topic_id": "4b849c22",
+  "label": "Violence Sweeps Mexico After Drug Lord 'El Mencho' Killing",
+  "category": "international",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "escalating",
+  "summary": "The killing of Mexico's most wanted drug lord, Nemesio Oseguera Cervantes ('El Mencho'), has triggered widespread violence across the country.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.928Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.aljazeera.com/news/2026/02/23/violence-sweeps-parts-of-mexico-after-killing-of-drug-lord-el-mencho"
+      ],
+      "update_count": 1
+    },
+    {
+      "date": "2026-02-25T00:36:59.350Z",
+      "event": "Retaliatory Cartel Attacks in Mexico Leave 62 Dead",
+      "description": "Following the death of a cartel leader, armed groups launched sweeping attacks across 20 Mexican states, killing at least 62 people.",
+      "publication": "Just Security",
+      "url": "https://justsecurity.org/"
+    }
+  ],
+  "signal_strength": "strong"
+}

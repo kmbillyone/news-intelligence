@@ -1,0 +1,20 @@
+{
+  "topic_id": "f4d78c5b",
+  "label": "EU Addresses Hungary's Threat to Derail Russia Sanctions",
+  "category": "international",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-23T16:08:01.928Z",
+  "status": "new",
+  "summary": "EU diplomats are in urgent discussions to overcome Hungary's potential obstruction of new sanctions targeting Russia.",
+  "timeline": [
+    {
+      "date": "2026-02-23T16:08:01.928Z",
+      "event": "Initial Discovery",
+      "source_count": 1,
+      "sources": [
+        "https://www.ctvnews.ca/world/eu-diplomats-scramble-to-overcome-hungary-s-threat-to-derail-new-sanctions-on-russia-1.7785946"
+      ],
+      "update_count": 1
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "topic_id": "9931e015",
+  "label": "Conflict and Violence in Africa",
+  "category": "international_news",
+  "interest_score": 0.5,
+  "last_updated": "2026-02-25T00:36:59.350Z",
+  "status": "escalating",
+  "scope": "international",
+  "signal_strength": "strong",
+  "timeline": [
+    {
+      "date": "2026-02-25",
+      "event": "M23 Rebel Spokesperson Killed in DR Congo Drone Strike",
+      "description": "Willy Ngoma, the military spokesperson for the M23 rebel group, was killed in an army drone strike in the Democratic Republic of Congo.",
+      "publication": "OkayAfrica",
+      "url": "https://okayafrica.com/"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "RSF Attack in Sudan Leaves 28 Dead",
+      "description": "An attack by the Rapid Support Forces on the town of Misteriha in North Darfur, Sudan, resulted in at least 28 deaths and 39 injuries.",
+      "publication": "OkayAfrica",
+      "url": "https://okayafrica.com/"
+    }
+  ]
+}
