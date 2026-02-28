@@ -1,44 +1,77 @@
 const fs = require('fs');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const path = require('path');
+
+function extractJSON(text) {
+    if (!text) throw new Error("Empty text provided for JSON extraction");
+    
+    // 1. Try markdown first
+    const mdMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (mdMatch) {
+        try { return JSON.parse(mdMatch[1].trim()); } catch (e) {}
+    }
+    
+    // 2. Try parsing the whole thing
+    try { return JSON.parse(text.trim()); } catch (e) {}
+    
+    // 3. Try finding the first { and last }
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+        try { return JSON.parse(text.substring(firstBrace, lastBrace + 1)); } catch (e) {}
+    }
+
+    // 4. Try finding the first [ and last ]
+    const firstBracket = text.indexOf('[');
+    const lastBracket = text.lastIndexOf(']');
+    if (firstBracket !== -1 && lastBracket > firstBracket) {
+        try { return JSON.parse(text.substring(firstBracket, lastBracket + 1)); } catch (e) {}
+    }
+
+    throw new Error("Could not extract valid JSON from response.");
+}
 
 /**
  * Executes a Gemini prompt using the CLI tool.
- * Supports model override and JSON formatting.
  */
-async function geminiCLI(prompt, model = 'gemini-3-pro-preview') {
+async function geminiCLI(prompt, requestedModel = 'gemini-3-flash-preview') {
     const tmpFile = path.join(__dirname, `tmp_prompt_${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, prompt);
     
+    const actualModel = requestedModel;
+
     try {
-        const cmd = `gemini -m "${model}" -p "$(cat ${tmpFile})" --output-format json`;
-        const output = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
-        
-        const rawParsed = JSON.parse(output.trim());
-        let result = rawParsed;
-        
-        // If it's an envelope, extract the response
-        if (rawParsed.response && typeof rawParsed.response === 'string') {
-            let jsonStr = rawParsed.response.trim();
-            // Remove markdown blocks if present
-            jsonStr = jsonStr.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-            try {
-                result = JSON.parse(jsonStr);
-            } catch (e) {
-                console.warn(`⚠️ Failed to parse inner response as JSON. Using raw string.`);
-                result = rawParsed.response;
+        console.log(`   [CLI] Attempting with model: ${actualModel}...`);
+        try {
+            const output = execFileSync('gemini', [
+                '-m', actualModel,
+                '-p', prompt
+            ], { 
+                encoding: 'utf8', 
+                maxBuffer: 50 * 1024 * 1024, 
+                env: { ...process.env, GOOGLE_CLOUD_PROJECT: "pivotal-gearbox-486906-b0" } 
+            });
+            
+            let rawJson = output.trim();
+            let result = extractJSON(rawJson);
+            
+            // Handle envelope if it exists
+            if (result && result.response && typeof result.response === 'string') {
+                try {
+                    result = extractJSON(result.response);
+                } catch (e) {
+                    result = result.response;
+                }
+            } else if (result && result.response) {
+                result = result.response;
             }
-        } else if (typeof rawParsed === 'string') {
-             // Sometimes it might return just the string? Unlikely with --output-format json
-             try {
-                result = JSON.parse(rawParsed);
-             } catch(e) {}
+            
+            console.log(`   ✅ [CLI] Success with ${actualModel}`);
+            return result;
+        } catch (e) {
+            console.error(`❌ geminiCLI failed: ${e.message.split('\n')[0]}. Falling back to Python...`);
+            return await geminiGroundingRadarPython(prompt, actualModel);
         }
-        
-        return result;
-    } catch (e) {
-        console.error(`❌ geminiCLI failed: ${e.message}`);
-        throw e;
     } finally {
         if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
     }
@@ -46,91 +79,36 @@ async function geminiCLI(prompt, model = 'gemini-3-pro-preview') {
 
 /**
  * Searches Google using the existing grounding-enabled script.
+ * Updated: Only uses gemini-3-flash-preview as per user request.
  */
-async function geminiGroundingRadarPython(prompt, model = null) {
+async function geminiGroundingRadarPython(prompt, requestedModel = null) {
     const gsearchScript = path.resolve(__dirname, '../../../scripts/gsearch');
     const tmpFile = path.join(__dirname, `tmp_radar_prompt_${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, prompt);
 
-    try {
-        console.log(`   (Calling Python gsearch for radar sweep using ${model || 'default'}...)`);
-        const env = { ...process.env };
-        if (model) env.GEMINI_MODEL = model;
+    const actualModel = 'gemini-3-flash-preview';
 
+    const tryPython = async (targetModel) => {
+        console.log(`   (Calling Python gsearch using ${targetModel}...)`);
+        const env = { ...process.env, GEMINI_MODEL: targetModel };
         const cmd = `"${gsearchScript}" "$(cat ${tmpFile})"`;
-        const output = execSync(cmd, { 
-            encoding: 'utf8', 
-            maxBuffer: 50 * 1024 * 1024,
-            env: env 
-        });
+        const output = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, env });
         
-        let jsonStr = output.trim();
-        
-        // Try to find markdown block first
-        const markdownMatch = jsonStr.match(/```json\s*([\s\S]*?)\s*```/);
-        
-        if (markdownMatch) {
-            jsonStr = markdownMatch[1].trim();
-        } else {
-            // Fallback: try to find the largest JSON object/array
-            const firstBrace = jsonStr.indexOf('{');
-            const firstBracket = jsonStr.indexOf('[');
-            
-            if (firstBrace === -1 && firstBracket === -1) {
-                throw new Error("No JSON structure found in output.");
-            }
-            
-            let startIdx = -1;
-            let endChar = '';
-            
-            if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-                startIdx = firstBrace;
-                endChar = '}';
-            } else {
-                startIdx = firstBracket;
-                endChar = ']';
-            }
-            
-            // Find the last occurrence of the closing character
-            const lastIdx = jsonStr.lastIndexOf(endChar);
-            
-            if (lastIdx === -1 || lastIdx < startIdx) {
-                throw new Error("Malformed JSON structure (unclosed).");
-            }
-            
-            jsonStr = jsonStr.substring(startIdx, lastIdx + 1);
+        let cleanOutput = output;
+        if (output.includes('---')) {
+            const parts = output.split('---');
+            cleanOutput = parts[parts.length - 1].trim();
         }
-        
-        // Try to parse the extracted string
-        let parsed;
-        try {
-            parsed = JSON.parse(jsonStr);
-        } catch (e) {
-            // If it failed with "Unexpected non-whitespace character after JSON at position X",
-            // it means we have valid JSON followed by garbage. Let's try to slice it.
-            const match = e.message.match(/position (\d+)/);
-            if (match) {
-                const pos = parseInt(match[1]);
-                // Try to parse up to that position
-                try {
-                    const truncated = jsonStr.substring(0, pos);
-                    parsed = JSON.parse(truncated);
-                    // If successful, we are good!
-                    jsonStr = truncated;
-                } catch (e2) {
-                    throw e; // Original error was more useful
-                }
-            } else {
-                throw e;
-            }
-        }
-        
-        if (parsed.error || parsed.status === 'error') {
-            throw new Error(parsed.error?.message || parsed.error || "Upstream API Error");
-        }
-        return parsed;
+
+        return extractJSON(cleanOutput);
+    };
+
+    try {
+        const result = await tryPython(actualModel);
+        console.log(`   ✅ [Python] Success with ${actualModel}`);
+        return result;
     } catch (e) {
-        console.error(`❌ geminiGroundingRadarPython failed: ${e.message}`);
+        console.error(`❌ geminiGroundingRadarPython failed with ${actualModel}: ${e.message.split('\n')[0]}`);
         throw e;
     } finally {
         if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);

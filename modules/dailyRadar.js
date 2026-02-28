@@ -8,14 +8,7 @@ You are performing a global daily news radar sweep.
 
 Search for factual news reports published within the past 24 hours.
 
-Your objective is to identify recent REAL-WORLD DEVELOPMENTS across the following interest areas:
-
-1. Local News
-2. International News
-3. Local Entertainment
-4. Technology and Science
-5. Other Globally Trending Topics
-   (major incidents, emerging issues, unusual developments gaining attention)
+Your objective is to identify recent REAL-WORLD DEVELOPMENTS across the following interest areas. 
 
 --------------------------------
 
@@ -23,9 +16,9 @@ INTAKE BALANCE TARGET
 
 Try to return results in approximately:
 
-- 10–15 Hong Kong Local News
-- 8–12 International News
-- 5–8 Local Entertainment
+- 15–20 Hong Kong Local News
+- 10–12 International News
+- 8–10 Hong Kong Local Entertainment
 - 10–15 Technology and Science
 - 5–10 Other Trending Topics
 
@@ -55,6 +48,17 @@ DEPRIORITIZE:
 - promotional content
 - repetitive product leaks
 - viral social media topics without formal reporting
+
+--------------------------------
+
+For Hong Kong Local News and Entertainment, you may refer to the sources including:
+- HK01
+- Commercial Radio (881903.com)
+- Now News (Now 新聞)
+- Ming Pao (明報)
+- Sing Tao (星島)
+- South China Morning Post (SCMP)
+- RTHK
 
 --------------------------------
 
@@ -90,22 +94,16 @@ Example format:
 
     let reports;
     try {
-        console.log('🔹 Attempt 1: Gemini CLI (gemini-3-pro-preview)...');
-        reports = await geminiCLI(sweepPrompt, 'gemini-3-pro-preview');
+        console.log('🔹 Attempting Radar Sweep...');
+        reports = await geminiCLI(sweepPrompt);
     } catch (e) {
         console.warn(`⚠️ CLI Attempt failed: ${e.message}`);
-        console.log('🔹 Attempt 2: Python Script (gemini-3-pro-preview)...');
+        console.log('🔹 Attempt 2: Python Script...');
         try {
-            reports = await geminiGroundingRadarPython(sweepPrompt, 'gemini-3-pro-preview');
+            reports = await geminiGroundingRadarPython(sweepPrompt);
         } catch (innerE) {
-            console.warn(`⚠️ Python (3-pro) failed: ${innerE.message}`);
-            console.log('🔹 Attempt 3: Python Script (gemini-2.5-flash)...');
-            try {
-                reports = await geminiGroundingRadarPython(sweepPrompt, 'gemini-2.5-flash');
-            } catch (finalE) {
-                console.error('❌ All radar sweep attempts failed.');
-                throw finalE;
-            }
+            console.error('❌ All radar sweep attempts failed.');
+            throw innerE;
         }
     }
     
@@ -182,12 +180,12 @@ NEWS REPORTS:
 ${JSON.stringify(reports)}
 `;
 
-    console.log('🔹 Attempting Identification with gemini-3-pro-preview...');
+    console.log('🔹 Attempting Identification...');
     try {
-        return await geminiCLI(clusteringPrompt, 'gemini-3-pro-preview');
+        return await geminiCLI(clusteringPrompt);
     } catch (e) {
-        console.warn(`⚠️ Attempt 1 failed. Retrying with gemini-3-flash-preview...`);
-        return await geminiCLI(clusteringPrompt, 'gemini-3-flash-preview');
+        console.warn(`⚠️ Identification failed: ${e.message}.`);
+        throw e;
     }
 }
 
