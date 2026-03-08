@@ -34,58 +34,88 @@ async function getStoryHistory(storyId, days = 5) {
     return res.rows.map(row => `${row.date.toISOString().split('T')[0]}: ${row.summary.substring(0, 100)}...`).join('\n');
 }
 
-function validateReferences(result) {
+function validateReferences(result, rawText, groundingMetadata) {
     if (!result.summary) return false;
     const lowerSummary = result.summary.trim().toLowerCase();
     if (lowerSummary === "no_new_developments") return true;
     
-    if (!Array.isArray(result.sources) || result.sources.length === 0) {
-        console.warn(`   ⚠️ No grounding sources were found.`);
-        return true; // Still allow empty sources, just warn
+    if (!groundingMetadata || !Array.isArray(groundingMetadata.groundingChunks) || groundingMetadata.groundingChunks.length === 0) {
+        console.warn(`   ⚠️ No grounding sources were found in metadata.`);
+        return true; 
     }
     
-    // Sort sources by publisher to have a consistent order
-    result.sources.sort((a, b) => (a.publisher || "").localeCompare(b.publisher || ""));
-    
-    const oldSourceIds = (result.sources || []).map(s => s.id);
-    const newSources = result.sources.map((s, idx) => ({ ...s, newId: idx + 1 }));
-    const idMap = new Map();
-    newSources.forEach(s => idMap.set(s.id, s.newId));
-
-    // Updated refRegex to match multiple references like [1], [1.2], or [1.24, 1.26]
-    const refRegex = /\[([0-9.,\s]+)\]/g;
-    
-    // Clean up references in the summary
-    result.summary = result.summary.replace(refRegex, (match, p1) => {
-        // Split by comma in case there are multiple references
-        const parts = p1.split(',').map(p => p.trim()).filter(p => p);
-        const mappedIds = [];
-        
-        for (const p of parts) {
-            // Extract the base integer if it's a decimal like "1.24"
-            const refId = parseInt(p.split('.')[0]);
-            if (idMap.has(refId)) {
-                mappedIds.push(idMap.get(refId));
-            } else {
-                console.warn(`   ⚠️ Removing broken reference [${p}].`);
-            }
-        }
-        
-        // Return unique mapped IDs joined by commas
-        const uniqueMapped = [...new Set(mappedIds)];
-        if (uniqueMapped.length === 0) return "";
-        return `[${uniqueMapped.join(', ')}]`;
-    });
-    
-    // Update IDs in sources
-    result.sources = newSources.map(s => ({
-        id: s.newId,
-        publisher: s.publisher,
-        url: s.url
+    // 1. Extract and Renumber Sources
+    const rawSources = groundingMetadata.groundingChunks.map((chunk, index) => ({
+        oldId: index + 1,
+        publisher: chunk.web ? (chunk.web.title || "News Source") : "News Source",
+        url: chunk.web ? chunk.web.uri : ""
     }));
 
-    // Clean up empty brackets and double spaces
-    result.summary = result.summary.replace(/\s+\[\]/g, '').replace(/\[\]/g, '').replace(/  +/g, ' ');
+    // Sort sources by publisher for consistent order
+    rawSources.sort((a, b) => a.publisher.localeCompare(b.publisher));
+    
+    const idMap = new Map();
+    const finalSources = rawSources.map((s, idx) => {
+        const newId = idx + 1;
+        idMap.set(s.oldId, newId);
+        return { id: newId, publisher: s.publisher, url: s.url };
+    });
+
+    result.sources = finalSources;
+
+    // 2. Inject References using groundingSupports if available
+    if (groundingMetadata.groundingSupports && groundingMetadata.groundingSupports.length > 0) {
+        console.log(`   💉 Injecting ${groundingMetadata.groundingSupports.length} references from metadata...`);
+        
+        // Find where summary is in rawText to handle index offsets
+        // Note: rawText is JSON, so summary in rawText might have escaped characters.
+        // We'll try to find the summary value part.
+        const summaryKey = '"summary":';
+        const summaryKeyIdx = rawText.indexOf(summaryKey);
+        
+        if (summaryKeyIdx !== -1) {
+            // Find the opening quote of the summary value
+            const openQuoteIdx = rawText.indexOf('"', summaryKeyIdx + summaryKey.length);
+            if (openQuoteIdx !== -1) {
+                const offset = openQuoteIdx + 1;
+                
+                // Filter and sort supports by endIndex descending
+                const injections = groundingMetadata.groundingSupports
+                    .map(support => {
+                        const newIds = (support.groundingChunkIndices || [])
+                            .map(idx => idMap.get(idx + 1))
+                            .filter(id => id);
+                        return {
+                            startIndex: support.segment.startIndex - offset,
+                            endIndex: support.segment.endIndex - offset,
+                            refString: newIds.length > 0 ? ` [${newIds.join(', ')}]` : ""
+                        };
+                    })
+                    .filter(inj => inj.refString && inj.startIndex >= 0)
+                    .sort((a, b) => b.endIndex - a.endIndex);
+
+                let updatedSummary = result.summary;
+                for (const inj of injections) {
+                    if (inj.endIndex <= updatedSummary.length) {
+                        updatedSummary = updatedSummary.substring(0, inj.endIndex) + inj.refString + updatedSummary.substring(inj.endIndex);
+                    }
+                }
+                result.summary = updatedSummary;
+            }
+        }
+    } else {
+        // Fallback to old regex method if no supports found (unlikely with grounding)
+        const refRegex = /\[([0-9.,\s]+)\]/g;
+        result.summary = result.summary.replace(refRegex, (match, p1) => {
+            const parts = p1.split(',').map(p => p.trim()).filter(p => p);
+            const mappedIds = parts.map(p => idMap.get(parseInt(p.split('.')[0]))).filter(id => id);
+            const uniqueMapped = [...new Set(mappedIds)];
+            return uniqueMapped.length > 0 ? `[${uniqueMapped.join(', ')}]` : "";
+        });
+    }
+
+    // Clean up formatting
+    result.summary = result.summary.replace(/\s+\[\]/g, '').replace(/\[\]/g, '').replace(/  +/g, ' ').trim();
     
     return true;
 }
@@ -121,7 +151,7 @@ Requirements:
 - Produce a ONE LINE TITLE (around 10-15 words) for today's development.
 - Produce a SUB-TITLE (around 20-30 words) providing context for the development.
 - Produce an ARTICLE-STYLE SUMMARY with multiple paragraphs (total around 500 words).
-- Every factual statement MUST include inline references [n] mapping to the citations in the grounding metadata.
+- DO NOT include inline references like [1] or [2] in your response. I will add them myself based on the grounding metadata.
 - If NO significant news or new developments are found for this specific story within the past 24 hours, return exactly:
   { "summary": "NO_NEW_DEVELOPMENTS", "status": "stable", "sources": [] }
 
@@ -129,7 +159,7 @@ Reply in strict JSON with the following structure:
 {
 	"title": "One line title here",
 	"sub_title": "Descriptive sub-title providing context",
-	"summary": "Full article with multiple paragraphs and inline [1] [2] markers...",
+	"summary": "Full article with multiple paragraphs...",
 	"status": "ongoing"
 }
 
@@ -162,29 +192,15 @@ TARGET STORY:
             
             const articleData = JSON.parse(response.text.substring(firstBrace, lastBrace + 1));
             
-            const sources = [];
-            if (response.groundingMetadata && Array.isArray(response.groundingMetadata.groundingChunks)) {
-                response.groundingMetadata.groundingChunks.forEach((chunk, index) => {
-                    if (chunk.web) {
-                        sources.push({
-                            id: index + 1,
-                            publisher: chunk.web.title || "News Source",
-                            url: chunk.web.uri
-                        });
-                    }
-                });
-            }
-
             result = {
                 title: articleData.title,
                 sub_title: articleData.sub_title,
                 summary: articleData.summary,
                 status: articleData.status || "ongoing",
-                sources: sources,
                 groundingMetadata: response.groundingMetadata
             };
 
-            if (result.title && result.summary && validateReferences(result)) {
+            if (result.title && result.summary && validateReferences(result, response.text, response.groundingMetadata)) {
                 if (result.sources && result.sources.length > 0) {
                     console.log(`   🔗 Resolving ${result.sources.length} news URLs...`);
                     result.sources = await resolveSources(result.sources);
