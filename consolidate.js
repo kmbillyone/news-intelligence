@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
 const { execSync } = require('child_process');
-const { geminiCLI, geminiGroundingRadarPython } = require('./modules/geminiHelper');
+const { geminiCLI, geminiGroundingRadarPython, geminiGroundingWithMetadata } = require('./modules/geminiHelper');
+const { resolveSources } = require('./modules/urlResolver');
 
 const pool = new Pool({
     user: 'postgres',
@@ -33,21 +34,59 @@ async function getStoryHistory(storyId, days = 5) {
     return res.rows.map(row => `${row.date.toISOString().split('T')[0]}: ${row.summary.substring(0, 100)}...`).join('\n');
 }
 
-function validateReferences(summary, sources) {
-    if (!summary || !Array.isArray(sources)) return false;
-    const lowerSummary = summary.trim().toLowerCase();
+function validateReferences(result) {
+    if (!result.summary) return false;
+    const lowerSummary = result.summary.trim().toLowerCase();
     if (lowerSummary === "no_new_developments") return true;
     
-    const sourceIds = sources.map(s => s.id);
-    const refRegex = /\[(\d+)\]/g;
-    let match;
-    while ((match = refRegex.exec(summary)) !== null) {
-        const refId = parseInt(match[1]);
-        if (!sourceIds.includes(refId)) {
-            console.warn(`   ⚠️ Reference [${refId}] has no corresponding source.`);
-            return false;
-        }
+    if (!Array.isArray(result.sources) || result.sources.length === 0) {
+        console.warn(`   ⚠️ No grounding sources were found.`);
+        return true; // Still allow empty sources, just warn
     }
+    
+    // Sort sources by publisher to have a consistent order
+    result.sources.sort((a, b) => (a.publisher || "").localeCompare(b.publisher || ""));
+    
+    const oldSourceIds = (result.sources || []).map(s => s.id);
+    const newSources = result.sources.map((s, idx) => ({ ...s, newId: idx + 1 }));
+    const idMap = new Map();
+    newSources.forEach(s => idMap.set(s.id, s.newId));
+
+    // Updated refRegex to match multiple references like [1], [1.2], or [1.24, 1.26]
+    const refRegex = /\[([0-9.,\s]+)\]/g;
+    
+    // Clean up references in the summary
+    result.summary = result.summary.replace(refRegex, (match, p1) => {
+        // Split by comma in case there are multiple references
+        const parts = p1.split(',').map(p => p.trim()).filter(p => p);
+        const mappedIds = [];
+        
+        for (const p of parts) {
+            // Extract the base integer if it's a decimal like "1.24"
+            const refId = parseInt(p.split('.')[0]);
+            if (idMap.has(refId)) {
+                mappedIds.push(idMap.get(refId));
+            } else {
+                console.warn(`   ⚠️ Removing broken reference [${p}].`);
+            }
+        }
+        
+        // Return unique mapped IDs joined by commas
+        const uniqueMapped = [...new Set(mappedIds)];
+        if (uniqueMapped.length === 0) return "";
+        return `[${uniqueMapped.join(', ')}]`;
+    });
+    
+    // Update IDs in sources
+    result.sources = newSources.map(s => ({
+        id: s.newId,
+        publisher: s.publisher,
+        url: s.url
+    }));
+
+    // Clean up empty brackets and double spaces
+    result.summary = result.summary.replace(/\s+\[\]/g, '').replace(/\[\]/g, '').replace(/  +/g, ' ');
+    
     return true;
 }
 
@@ -74,29 +113,24 @@ async function processStory(story) {
     const history = await getStoryHistory(story.story_id);
     
     const prompt = `
-You are generating a comprehensive daily intelligence report for a tracked Story. 
+You are generating a comprehensive daily intelligence report for a tracked News Story.
 
 Requirements:
-- Search for latest developments related to the story within the past 24 hours.
-- Produce a ONE LINE TITLE for today's development (around 10-15 words).
-- CRITICAL: Use a rich and descriptive title. DO NOT use generic phrases like "Summary" or "內容摘要". Every title must reflect the specific event.
+- Search for the latest developments related to the story within the past 24 hours.
+- Base your summary on 5-10 verifiable news references.
+- Produce a ONE LINE TITLE (around 10-15 words) for today's development.
 - Produce a SUB-TITLE (around 20-30 words) providing context for the development.
 - Produce an ARTICLE-STYLE SUMMARY with multiple paragraphs (total around 500 words).
-- Every factual statement must include inline references [n]. Each reference must be included in the sources array, with the direct URL to the related news report.
+- Every factual statement MUST include inline references [n] mapping to the citations in the grounding metadata.
 - If NO significant news or new developments are found for this specific story within the past 24 hours, return exactly:
   { "summary": "NO_NEW_DEVELOPMENTS", "status": "stable", "sources": [] }
 
-Reply in strict JSON. Do NOT include any other text.
-
-Format:
+Reply in strict JSON with the following structure:
 {
 	"title": "One line title here",
-	"sub_title": "Descriptive sub-title providing context for the day",
-	"summary": "Full article with multiple paragraphs [1] [2].\\n\\nSecond paragraph here [3]...",
-	"status": "ongoing",
-	"sources": [
-		{ "id": 1, "publisher": "Publisher Name", "url": "direct URL to the news report" }
-	]
+	"sub_title": "Descriptive sub-title providing context",
+	"summary": "Full article with multiple paragraphs and inline [1] [2] markers...",
+	"status": "ongoing"
 }
 
 TARGET STORY:
@@ -107,19 +141,57 @@ TARGET STORY:
 
     let attempts = 0;
     let result = null;
+    const maxRetries = 2;
 
-    while (attempts < 3) {
+    while (attempts < maxRetries) {
         attempts++;
-        console.log(`   Attempt ${attempts} to fetch data...`);
+        console.log(`   Attempt ${attempts} to fetch data with grounding metadata...`);
         try {
-            // Using default gemini-3-flash-preview via the helper
-            result = await geminiCLI(prompt);
+            const response = await geminiGroundingWithMetadata(prompt);
             
-            if (result && (result.summary === "NO_NEW_DEVELOPMENTS" || (result.title && result.summary && validateReferences(result.summary, result.sources)))) {
+            if (response.text.includes("NO_NEW_DEVELOPMENTS")) {
+                result = { summary: "NO_NEW_DEVELOPMENTS", status: "stable", sources: [] };
+                break;
+            }
+
+            const firstBrace = response.text.indexOf('{');
+            const lastBrace = response.text.lastIndexOf('}');
+            if (firstBrace === -1 || lastBrace === -1) {
+                throw new Error("Could not find JSON structure in response text.");
+            }
+            
+            const articleData = JSON.parse(response.text.substring(firstBrace, lastBrace + 1));
+            
+            const sources = [];
+            if (response.groundingMetadata && Array.isArray(response.groundingMetadata.groundingChunks)) {
+                response.groundingMetadata.groundingChunks.forEach((chunk, index) => {
+                    if (chunk.web) {
+                        sources.push({
+                            id: index + 1,
+                            publisher: chunk.web.title || "News Source",
+                            url: chunk.web.uri
+                        });
+                    }
+                });
+            }
+
+            result = {
+                title: articleData.title,
+                sub_title: articleData.sub_title,
+                summary: articleData.summary,
+                status: articleData.status || "ongoing",
+                sources: sources,
+                groundingMetadata: response.groundingMetadata
+            };
+
+            if (result.title && result.summary && validateReferences(result)) {
+                if (result.sources && result.sources.length > 0) {
+                    console.log(`   🔗 Resolving ${result.sources.length} news URLs...`);
+                    result.sources = await resolveSources(result.sources);
+                }
                 break;
             } else {
                 console.warn(`   ⚠️ Validation failed (invalid structure or references).`);
-                console.warn(result);
                 result = null;
             }
         } catch (e) {
@@ -128,10 +200,9 @@ TARGET STORY:
     }
 
     if (result) {
-        if (result.summary.trim().toUpperCase() === "NO_NEW_DEVELOPMENTS") {
+        if (result.summary === "NO_NEW_DEVELOPMENTS") {
             console.log(`   ⏭️ No new developments for "${story.label}".`);
         } else {
-            // Fetch thumbnails
             if (result.sources && result.sources.length > 0) {
                 const urls = result.sources.map(s => s.url);
                 result.thumbnails = await fetchThumbnails(urls);
@@ -139,7 +210,7 @@ TARGET STORY:
             await saveTimeline(story.story_id, result);
         }
     } else {
-        console.error(`   ❌ Failed to get valid data for story "${story.label}" after 3 attempts.`);
+        console.error(`   ❌ Failed to get valid data for story "${story.label}" after retries.`);
     }
 }
 
@@ -149,7 +220,6 @@ async function saveTimeline(storyId, data) {
     try {
         await client.query('BEGIN');
         
-        // Upsert timeline
         await client.query(`
             INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -157,7 +227,6 @@ async function saveTimeline(storyId, data) {
             DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7
         `, [storyId, today, data.title, data.sub_title, data.summary, data.status.toLowerCase(), JSON.stringify(data.thumbnails || [])]);
 
-        // Overwrite sources
         await client.query(`DELETE FROM story_timeline_source WHERE story_id = $1 AND date = $2`, [storyId, today]);
         if (Array.isArray(data.sources)) {
             for (const src of data.sources) {
@@ -167,6 +236,8 @@ async function saveTimeline(storyId, data) {
                 `, [storyId, today, src.id, src.publisher, src.url]);
             }
         }
+
+        await client.query(`UPDATE story SET last_updated = NOW() WHERE story_id = $1`, [storyId]);
         
         await client.query('COMMIT');
         console.log(`   ✅ Updated timeline and thumbnails for ${storyId}.`);
@@ -180,12 +251,17 @@ async function saveTimeline(storyId, data) {
 
 async function main() {
     console.log('🌟 Starting Comprehensive Story Consolidation Job...');
-    const stories = await getTopStories(30);
+    const stories = await getTopStories(15);
     console.log(`📋 Processing ${stories.length} stories.`);
 
-    for (const story of stories) {
+    for (let i = 0; i < stories.length; i++) {
+        const story = stories[i];
         try {
             await processStory(story);
+            if (i < stories.length - 1) {
+                console.log(`   ⏳ Delaying 15s before processing next story to avoid rate limits...`);
+                await new Promise(res => setTimeout(res, 15000));
+            }
         } catch (err) {
             console.error(`💥 Error processing story ${story.story_id}:`, err);
         }

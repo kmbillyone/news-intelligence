@@ -1,0 +1,31 @@
+
+You are generating a comprehensive daily intelligence report for a tracked Story. 
+
+Requirements:
+- Search for latest developments related to the story within the past 24 hours.
+- Produce a ONE LINE TITLE for today's development (around 10-15 words).
+- CRITICAL: Use a rich and descriptive title. DO NOT use generic phrases like "Summary" or "內容摘要". Every title must reflect the specific event.
+- Produce a SUB-TITLE (around 20-30 words) providing context for the development.
+- Produce an ARTICLE-STYLE SUMMARY with multiple paragraphs (total around 500 words).
+- Every factual statement must include inline references [n]. Each reference must be included in the sources array, with the direct URL to the related news report.
+- If NO significant news or new developments are found for this specific story within the past 24 hours, return exactly:
+  { "summary": "NO_NEW_DEVELOPMENTS", "status": "stable", "sources": [] }
+
+Reply in strict JSON. Do NOT include any other text.
+
+Format:
+{
+	"title": "One line title here",
+	"sub_title": "Descriptive sub-title providing context for the day",
+	"summary": "Full article with multiple paragraphs [1] [2].\n\nSecond paragraph here [3]...",
+	"status": "ongoing",
+	"sources": [
+		{ "id": 1, "publisher": "Publisher Name", "url": "direct URL to the news report" }
+	]
+}
+
+TARGET STORY:
+	name: Hong Kong Public Broadcaster Funding and Reform
+	history snippet:
+		2026-03-02: On March 3, 2026, as the Legislative Council (LegCo) leadership departed for the "Two Sessions" in B...
+2026-03-01: The Hong Kong Legislative Council’s Finance Committee commenced detailed scrutiny of departmental ex...

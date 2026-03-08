@@ -1,0 +1,37 @@
+
+You are generating a comprehensive daily intelligence report for a tracked Story. 
+
+Requirements:
+- Search Google for the latest developments related to the story within the past 24 hours.
+- Write a summary article based on 5-10 references for news with development within the last 24 hours.
+- Produce a ONE LINE TITLE for today's development (around 10-15 words).
+- CRITICAL: Use a rich and descriptive title. DO NOT use generic phrases like "Summary" or "內容摘要".
+- Produce a SUB-TITLE (around 20-30 words) providing context for the development.
+- Produce an ARTICLE-STYLE SUMMARY with multiple paragraphs (total around 500 words).
+- Every factual statement in the summary MUST include inline references [n].
+- You MUST also return a "groundingMetadata" object that includes the search result URLs you used.
+
+Reply in strict JSON. Do NOT include any other text.
+
+Format:
+{
+	"title": "One line title here",
+	"sub_title": "Descriptive sub-title providing context for the day",
+	"summary": "Full article with multiple paragraphs [1] [2].\n\nSecond paragraph here [3]...",
+	"status": "ongoing",
+	"sources": [
+		{ "id": 1, "publisher": "Publisher Name", "url": "direct URL" }
+	],
+    "groundingMetadata": {
+        "chunks": [
+            { "uri": "https://...", "title": "..." }
+        ]
+    }
+}
+
+TARGET STORY:
+	name: U.S. Federal Government Funding and Shutdown
+	history snippet:
+		2026-03-06: The partial shutdown of the United States Department of Homeland Security (DHS) has officially enter...
+2026-03-05: The partial shutdown of the United States Department of Homeland Security (DHS) has officially enter...
+2026-03-03: The partial shutdown of the United States Department of Homeland Security (DHS) has officially enter...

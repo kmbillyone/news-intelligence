@@ -8,8 +8,9 @@
     "setup": "node setup.js"
   },
   "dependencies": {
-    "sqlite3": "^5.1.7",
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.13.6",
     "dotenv": "^16.4.5",
-    "@google/generative-ai": "^0.21.0"
+    "sqlite3": "^5.1.7"
   }
 }

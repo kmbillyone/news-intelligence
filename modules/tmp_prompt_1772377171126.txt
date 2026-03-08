@@ -3,14 +3,7 @@ You are performing a global daily news radar sweep.
 
 Search for factual news reports published within the past 24 hours.
 
-Your objective is to identify recent REAL-WORLD DEVELOPMENTS across the following interest areas:
-
-1. Local News
-2. International News
-3. Local Entertainment
-4. Technology and Science
-5. Other Globally Trending Topics
-   (major incidents, emerging issues, unusual developments gaining attention)
+Your objective is to identify recent REAL-WORLD DEVELOPMENTS across the following interest areas. 
 
 --------------------------------
 
@@ -18,9 +11,9 @@ INTAKE BALANCE TARGET
 
 Try to return results in approximately:
 
-- 10–15 Hong Kong Local News
-- 8–12 International News
-- 5–8 Local Entertainment
+- 15–20 Hong Kong Local News
+- 10–12 International News
+- 8–10 Hong Kong Local Entertainment
 - 10–15 Technology and Science
 - 5–10 Other Trending Topics
 
@@ -53,20 +46,42 @@ DEPRIORITIZE:
 
 --------------------------------
 
+For Hong Kong Local News and Entertainment, you may refer to the sources including:
+- HK01
+- Commercial Radio (881903.com)
+- Now News (Now 新聞)
+- Ming Pao (明報)
+- Sing Tao (星島)
+- South China Morning Post (SCMP)
+- RTHK
+
+--------------------------------
+
 For each result return:
 
 - title
-- url
-- publication
-- published_time (if available)
 - category:
     local_news
     international_news
     local_entertainment
     tech_science
     global_trending
-- 1-line factual description of what happened
+-  description: 1-line factual description of what happened
 
 Return 40–60 results if available.
 
-Return JSON only.
+Return strict JSON only. Do NOT include any other text.
+
+Example format:
+[
+    {
+	"title": "example title 1",
+	"category": "local_news",
+	"description": "description 1"
+    },
+    {
+	"title": "example title 2",
+	"category": "international_news",
+	"description": "description 2"
+    }
+]
