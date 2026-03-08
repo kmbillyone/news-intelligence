@@ -28,12 +28,13 @@ async function insertNewStories(analysisResults) {
         await client.query('BEGIN');
         for (const story of analysisResults) {
             const storyId = 'story_' + Math.random().toString(36).substr(2, 8);
+            const label = story.story_title || story.situation_label;
             await client.query(
                 `INSERT INTO story (story_id, label, category_id) 
                  VALUES ($1, $2, $3)`,
-                [storyId, story.situation_label, story.category]
+                [storyId, label, story.category]
             );
-            console.log(`   [DB New Story] ${story.situation_label} (${story.category})`);
+            console.log(`   [DB New Story] ${label} (${story.category})`);
         }
         await client.query('COMMIT');
     } catch (e) {

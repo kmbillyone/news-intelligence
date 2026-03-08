@@ -43,7 +43,7 @@ Avoid:
 
 For each new story you identify, return:
 
-    situation_label (4–7 word stable reusable label)
+    story_title (10–12 word concise title)
         category:
 	    local_news
 	    international_news
@@ -51,15 +51,22 @@ For each new story you identify, return:
 	    tech_science
 	    global_trending
 
---------------------------------
+Requirements for story_title:
+- Focus on a single news event or development
+- Include key actors, milestone, or recent change
+- Avoid generic category/topic labels
+- Limit to 10–12 words
+- Keep factual, neutral tone
 
-Return strict JSON only. Do NOT include any other text.
-
-Example format:
+Example:
 [
     {
-        "situation_label": "Escalating Security Risks in Middle East",
+        "story_title": "US Congress passes AI regulation bill, effective 2026",
 	    "category": "international_news"
+    },
+    {
+        "story_title": "Hong Kong Legislative Council passes new labor welfare act",
+	    "category": "local_news"
     }
 ]
 
