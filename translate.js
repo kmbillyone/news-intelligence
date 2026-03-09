@@ -9,8 +9,10 @@ const pool = new Pool({
     port: 5432,
 });
 
+const TRANSLATION_MODEL = 'gemini-2.5-flash-lite';
+
 async function translateBatch() {
-    console.log('🌐 Starting Translation Batch (Optimized)...');
+    console.log(`🌐 Starting Translation Batch (Optimized using ${TRANSLATION_MODEL})...`);
 
     // 1. Stories Labels
     const storiesRes = await pool.query(`SELECT story_id, label FROM story WHERE label_zh IS NULL LIMIT 20`);
@@ -21,7 +23,7 @@ Reply in strict JSON array of objects.
 Input: ${JSON.stringify(storiesRes.rows)}
 Format: [{"story_id": "...", "label_zh": "..."}]`;
         try {
-            const translated = await geminiCLI(prompt, 'gemini-2.5-flash-lite');
+            const translated = await geminiCLI(prompt, TRANSLATION_MODEL);
             const items = Array.isArray(translated) ? translated : [];
             for (const item of items) {
                 if (item.story_id && item.label_zh) {
@@ -52,7 +54,7 @@ Format: [{"story_id": "...", "label_zh": "..."}]`;
             console.log(`   👉 Translating batch of ${batch.length} entries (${i + 1} to ${Math.min(i + BATCH_SIZE, timelineRes.rows.length)})...`);
             
             const prompt = `Translate these news entries into Traditional Chinese (Hong Kong context). 
-- Keep inline references like [1], [2] exactly as they are. 
+- Keep inline reference markers like [ref:1] or [ref:1, 2] EXACTLY as they are and place them at the end of the corresponding translated sentences.
 - Ensure "summary_zh" preserves paragraph breaks.
 - Reply in strict JSON array of objects.
 
@@ -60,7 +62,7 @@ Input: ${JSON.stringify(batch)}
 Format: [{"story_id": "...", "date_str": "...", "title_zh": "...", "sub_title_zh": "...", "summary_zh": "..."}]`;
 
             try {
-                const translated = await geminiCLI(prompt, 'gemini-2.5-flash-lite');
+                const translated = await geminiCLI(prompt, TRANSLATION_MODEL);
                 const items = Array.isArray(translated) ? translated : [];
                 
                 for (const item of items) {

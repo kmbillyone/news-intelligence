@@ -68,7 +68,7 @@ function validateReferences(result, rawText, groundingMetadata) {
     result.sources = finalSources;
     result.groundingSupports = [];
 
-    // 2. Extract Supports using groundingSupports if available
+    // 2. Extract Supports and Inject Placeholders into summary
     if (groundingMetadata.groundingSupports && groundingMetadata.groundingSupports.length > 0) {
         // Find where summary is in rawText to handle index offsets
         const summaryKey = '"summary":';
@@ -79,7 +79,7 @@ function validateReferences(result, rawText, groundingMetadata) {
             if (openQuoteIdx !== -1) {
                 const offset = openQuoteIdx + 1;
                 
-                result.groundingSupports = groundingMetadata.groundingSupports
+                const supports = groundingMetadata.groundingSupports
                     .map(support => {
                         const newIds = (support.groundingChunkIndices || [])
                             .map(idx => idMap.get(idx + 1))
@@ -91,6 +91,20 @@ function validateReferences(result, rawText, groundingMetadata) {
                         };
                     })
                     .filter(sup => sup.sourceIds.length > 0 && sup.startIndex >= 0);
+
+                result.groundingSupports = supports;
+
+                // Inject placeholders into the summary text [ref:1, 2]
+                // We sort descending by endIndex to insert from back to front
+                const sortedInjections = [...supports].sort((a, b) => b.endIndex - a.endIndex);
+                let summaryWithRefs = result.summary;
+                for (const sup of sortedInjections) {
+                    if (sup.endIndex <= summaryWithRefs.length) {
+                        const refMarker = ` [ref:${sup.sourceIds.join(', ')}]`;
+                        summaryWithRefs = summaryWithRefs.substring(0, sup.endIndex) + refMarker + summaryWithRefs.substring(sup.endIndex);
+                    }
+                }
+                result.summary = summaryWithRefs;
             }
         }
     }
@@ -215,10 +229,10 @@ async function saveTimeline(storyId, data) {
         await client.query('BEGIN');
         
         await client.query(`
-            INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails, grounding_supports)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails, grounding_supports, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
             ON CONFLICT (story_id, date) 
-            DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7, grounding_supports = $8
+            DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7, grounding_supports = $8, updated_at = NOW()
         `, [
             storyId, 
             today, 
