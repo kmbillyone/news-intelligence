@@ -99,9 +99,15 @@ function validateReferences(result, rawText, groundingMetadata) {
                 const sortedInjections = [...supports].sort((a, b) => b.endIndex - a.endIndex);
                 let summaryWithRefs = result.summary;
                 for (const sup of sortedInjections) {
-                    if (sup.endIndex <= summaryWithRefs.length) {
+                    let insertPos = sup.endIndex;
+                    // If insertPos is in the middle of a word, move it to the end of the word
+                    while (insertPos < summaryWithRefs.length && /\w/.test(summaryWithRefs[insertPos])) {
+                        insertPos++;
+                    }
+                    
+                    if (insertPos <= summaryWithRefs.length) {
                         const refMarker = ` [ref:${sup.sourceIds.join(', ')}]`;
-                        summaryWithRefs = summaryWithRefs.substring(0, sup.endIndex) + refMarker + summaryWithRefs.substring(sup.endIndex);
+                        summaryWithRefs = summaryWithRefs.substring(0, insertPos) + refMarker + summaryWithRefs.substring(insertPos);
                     }
                 }
                 result.summary = summaryWithRefs;
