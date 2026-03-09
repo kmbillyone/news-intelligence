@@ -34,6 +34,10 @@ async function getStoryHistory(storyId, days = 5) {
     return res.rows.map(row => `${row.date.toISOString().split('T')[0]}: ${row.summary.substring(0, 100)}...`).join('\n');
 }
 
+/**
+ * Validates references, extracts sources, and prepares grounding supports for later injection.
+ * Does NOT inject [n] into the summary text anymore.
+ */
 function validateReferences(result, rawText, groundingMetadata) {
     if (!result.summary) return false;
     const lowerSummary = result.summary.trim().toLowerCase();
@@ -62,25 +66,20 @@ function validateReferences(result, rawText, groundingMetadata) {
     });
 
     result.sources = finalSources;
+    result.groundingSupports = [];
 
-    // 2. Inject References using groundingSupports if available
+    // 2. Extract Supports using groundingSupports if available
     if (groundingMetadata.groundingSupports && groundingMetadata.groundingSupports.length > 0) {
-        console.log(`   💉 Injecting ${groundingMetadata.groundingSupports.length} references from metadata...`);
-        
         // Find where summary is in rawText to handle index offsets
-        // Note: rawText is JSON, so summary in rawText might have escaped characters.
-        // We'll try to find the summary value part.
         const summaryKey = '"summary":';
         const summaryKeyIdx = rawText.indexOf(summaryKey);
         
         if (summaryKeyIdx !== -1) {
-            // Find the opening quote of the summary value
             const openQuoteIdx = rawText.indexOf('"', summaryKeyIdx + summaryKey.length);
             if (openQuoteIdx !== -1) {
                 const offset = openQuoteIdx + 1;
                 
-                // Filter and sort supports by endIndex descending
-                const injections = groundingMetadata.groundingSupports
+                result.groundingSupports = groundingMetadata.groundingSupports
                     .map(support => {
                         const newIds = (support.groundingChunkIndices || [])
                             .map(idx => idMap.get(idx + 1))
@@ -88,34 +87,13 @@ function validateReferences(result, rawText, groundingMetadata) {
                         return {
                             startIndex: support.segment.startIndex - offset,
                             endIndex: support.segment.endIndex - offset,
-                            refString: newIds.length > 0 ? ` [${newIds.join(', ')}]` : ""
+                            sourceIds: [...new Set(newIds)]
                         };
                     })
-                    .filter(inj => inj.refString && inj.startIndex >= 0)
-                    .sort((a, b) => b.endIndex - a.endIndex);
-
-                let updatedSummary = result.summary;
-                for (const inj of injections) {
-                    if (inj.endIndex <= updatedSummary.length) {
-                        updatedSummary = updatedSummary.substring(0, inj.endIndex) + inj.refString + updatedSummary.substring(inj.endIndex);
-                    }
-                }
-                result.summary = updatedSummary;
+                    .filter(sup => sup.sourceIds.length > 0 && sup.startIndex >= 0);
             }
         }
-    } else {
-        // Fallback to old regex method if no supports found (unlikely with grounding)
-        const refRegex = /\[([0-9.,\s]+)\]/g;
-        result.summary = result.summary.replace(refRegex, (match, p1) => {
-            const parts = p1.split(',').map(p => p.trim()).filter(p => p);
-            const mappedIds = parts.map(p => idMap.get(parseInt(p.split('.')[0]))).filter(id => id);
-            const uniqueMapped = [...new Set(mappedIds)];
-            return uniqueMapped.length > 0 ? `[${uniqueMapped.join(', ')}]` : "";
-        });
     }
-
-    // Clean up formatting
-    result.summary = result.summary.replace(/\s+\[\]/g, '').replace(/\[\]/g, '').replace(/  +/g, ' ').trim();
     
     return true;
 }
@@ -237,11 +215,20 @@ async function saveTimeline(storyId, data) {
         await client.query('BEGIN');
         
         await client.query(`
-            INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails, grounding_supports)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             ON CONFLICT (story_id, date) 
-            DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7
-        `, [storyId, today, data.title, data.sub_title, data.summary, data.status.toLowerCase(), JSON.stringify(data.thumbnails || [])]);
+            DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7, grounding_supports = $8
+        `, [
+            storyId, 
+            today, 
+            data.title, 
+            data.sub_title, 
+            data.summary, 
+            data.status.toLowerCase(), 
+            JSON.stringify(data.thumbnails || []),
+            JSON.stringify(data.groundingSupports || [])
+        ]);
 
         await client.query(`DELETE FROM story_timeline_source WHERE story_id = $1 AND date = $2`, [storyId, today]);
         if (Array.isArray(data.sources)) {
