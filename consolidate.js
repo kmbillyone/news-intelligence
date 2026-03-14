@@ -177,7 +177,7 @@ TARGET STORY:
         try {
             const response = await geminiGroundingWithMetadata(prompt);
             
-            if (response.text.includes("NO_NEW_DEVELOPMENTS")) {
+            if (response && response.text && response.text.includes("NO_NEW_DEVELOPMENTS")) {
                 result = { summary: "NO_NEW_DEVELOPMENTS", status: "stable", sources: [] };
                 break;
             }
@@ -274,7 +274,7 @@ async function saveTimeline(storyId, data) {
 
 async function main() {
     console.log('🌟 Starting Comprehensive Story Consolidation Job...');
-    const stories = await getTopStories(15);
+    const stories = await getTopStories(25);
     console.log(`📋 Processing ${stories.length} stories.`);
 
     for (let i = 0; i < stories.length; i++) {

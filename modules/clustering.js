@@ -44,12 +44,18 @@ Avoid:
 For each new story you identify, return:
 
     story_title (10–12 word concise title)
-        category:
+    category:
 	    local_news
 	    international_news
 	    local_entertainment
 	    tech_science
 	    global_trending
+    is_hot (boolean: true/false)
+
+Requirements for is_hot:
+- Select EXACTLY ONE new story across all categories as today's focal/hottest news (is_hot: true).
+- All other new stories must have is_hot: false.
+- Choose the most globally or locally impactful, widely reported, or highly consequential story.
 
 Requirements for story_title:
 - Focus on a single news event or development
@@ -62,11 +68,13 @@ Example:
 [
     {
         "story_title": "US Congress passes AI regulation bill, effective 2026",
-	    "category": "international_news"
+	    "category": "international_news",
+        "is_hot": true
     },
     {
         "story_title": "Hong Kong Legislative Council passes new labor welfare act",
-	    "category": "local_news"
+	    "category": "local_news",
+        "is_hot": false
     }
 ]
 

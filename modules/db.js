@@ -30,9 +30,9 @@ async function insertNewStories(analysisResults) {
             const storyId = 'story_' + Math.random().toString(36).substr(2, 8);
             const label = story.story_title || story.situation_label;
             await client.query(
-                `INSERT INTO story (story_id, label, category_id) 
-                 VALUES ($1, $2, $3)`,
-                [storyId, label, story.category]
+                `INSERT INTO story (story_id, label, category_id, is_hot) 
+                 VALUES ($1, $2, $3, $4)`,
+                [storyId, label, story.category, !!story.is_hot]
             );
             console.log(`   [DB New Story] ${label} (${story.category})`);
         }

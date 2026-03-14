@@ -53,12 +53,33 @@ Format: [{"story_id": "...", "label_zh": "..."}]`;
             const batch = timelineRes.rows.slice(i, i + BATCH_SIZE);
             console.log(`   👉 Translating batch of ${batch.length} entries (${i + 1} to ${Math.min(i + BATCH_SIZE, timelineRes.rows.length)})...`);
             
-            const prompt = `Translate these news entries into Traditional Chinese (Hong Kong context). 
-- Keep inline reference markers like [ref:1] or [ref:1, 2] EXACTLY as they are and place them at the end of the corresponding translated sentences.
-- Ensure "summary_zh" preserves paragraph breaks.
-- Reply in strict JSON array of objects.
+            // Extract references per paragraph and clean up the input summary for translation
+            const batchWithRefHints = batch.map(row => {
+                const paragraphs = row.summary.split(/\n+/);
+                const pRefs = [];
+                const cleanParagraphs = paragraphs.map(p => {
+                    const matches = p.match(/\[ref:[\d, ]+\]/g);
+                    pRefs.push(matches ? [...new Set(matches.flatMap(m => m.match(/\d+/g)))].join(', ') : null);
+                    // Remove the [ref:...] markers from the text before sending to translation
+                    return p.replace(/\s*\[ref:[\d, ]+\]/g, '').trim();
+                });
+                return { 
+                    ...row, 
+                    summary_to_translate: cleanParagraphs.join('\n\n'),
+                    paragraph_refs: pRefs 
+                };
+            });
 
-Input: ${JSON.stringify(batch)}
+            const prompt = `Translate these news entries into Traditional Chinese (Hong Kong context). 
+
+Guidelines for "summary_zh":
+1. Use "summary_to_translate" as the source text.
+2. Preserve exactly the same number of paragraphs as the input.
+3. For each translated paragraph, look at the corresponding "paragraph_refs" list. 
+4. MUST append the reference marker (e.g., [ref:1, 2]) at the end of the translated paragraph if it has refs.
+5. DO NOT invent new references or place them in the middle of sentences. Only append at the end of paragraphs.
+
+Input: ${JSON.stringify(batchWithRefHints.map(({ story_id, date_str, title, sub_title, summary_to_translate, paragraph_refs }) => ({ story_id, date_str, title, sub_title, summary_to_translate, paragraph_refs })))}
 Format: [{"story_id": "...", "date_str": "...", "title_zh": "...", "sub_title_zh": "...", "summary_zh": "..."}]`;
 
             try {

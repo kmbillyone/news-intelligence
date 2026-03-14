@@ -18,8 +18,8 @@ Try to return results in approximately:
 
 - 15–20 Hong Kong Local News
 - 10–12 International News
-- 8–10 Hong Kong Local Entertainment
-- 10–15 Technology and Science
+- 8–10 Hong Kong Local Entertainment (Include but don't limit to: collar, candy@collar)
+- 10–15 Technology and Science (Include but don't limit to: 粵語/廣東話 TTS, AI models, web development, openclaw)
 - 5–10 Other Trending Topics
 
 Avoid overrepresentation of:

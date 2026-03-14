@@ -11,6 +11,7 @@
     "@google/generative-ai": "^0.21.0",
     "axios": "^1.13.6",
     "dotenv": "^16.4.5",
+    "ollama": "^0.6.3",
     "sqlite3": "^5.1.7"
   }
 }

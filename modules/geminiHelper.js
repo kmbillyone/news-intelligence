@@ -248,4 +248,45 @@ if __name__ == "__main__":
     }
 }
 
-module.exports = { geminiCLI, geminiGroundingRadarPython, geminiGroundingWithMetadata };
+/**
+ * Executes a prompt using Ollama Cloud (GLM-5) via ollama-js.
+ */
+async function ollamaCloudCLI(prompt, model = 'glm-5:cloud', maxRetries = 3, retryDelayMs = 5000) {
+    const { Ollama } = require('ollama');
+    const ollama = new Ollama({
+        host: 'https://ollama.com',
+        headers: { Authorization: 'Bearer ' + process.env.OLLAMA_API_KEY },
+    });
+
+    const executeWithRetry = async (attempt = 1) => {
+        try {
+            console.log(`   [Ollama Cloud] Attempt ${attempt}/${maxRetries} with model: ${model}...`);
+            const response = await ollama.chat({
+                model: model,
+                messages: [{ role: 'user', content: prompt }],
+                format: 'json',
+                stream: true
+            });
+            
+            let responseText = '';
+            for await (const part of response) {
+                responseText += part.message.content;
+            }
+            return extractJSON(responseText);
+        } catch (e) {
+            console.error(`   ❌ Ollama Cloud attempt ${attempt} failed: ${e.message}`);
+            
+            if (attempt < maxRetries) {
+                console.log(`   ⏳ Retrying in ${retryDelayMs / 1000}s...`);
+                await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+                return await executeWithRetry(attempt + 1);
+            }
+            
+            throw e;
+        }
+    };
+
+    return await executeWithRetry();
+}
+
+module.exports = { geminiCLI, geminiGroundingRadarPython, geminiGroundingWithMetadata, ollamaCloudCLI };
