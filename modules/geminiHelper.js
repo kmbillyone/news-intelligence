@@ -2,6 +2,22 @@ const fs = require('fs');
 const { execSync, execFileSync } = require('child_process');
 const path = require('path');
 
+// 🔄 Key Rotation State
+const API_KEYS = [
+    process.env.GEMINI_API_KEY, // Default key from env
+    'AIzaSyABlObN_S6LyByCOY6ka1rJHF_OUdEGpFI',
+    'AIzaSyABjlFKJopGaFZbNxCL8jxaxDciNImSKSE'
+].filter(k => k && k.trim() !== '');
+
+let currentKeyIndex = 0;
+
+function getNextAPIKey() {
+    if (API_KEYS.length === 0) return null;
+    const key = API_KEYS[currentKeyIndex];
+    currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
+    return key;
+}
+
 function extractJSON(text) {
     if (!text) throw new Error("Empty text provided for JSON extraction");
     
@@ -41,8 +57,9 @@ async function geminiCLI(prompt, requestedModel = 'gemini-3-flash-preview', maxR
     const actualModel = requestedModel;
 
     const executeWithRetry = async (attempt = 1) => {
+        const apiKey = getNextAPIKey();
         try {
-            console.log(`   [CLI] Attempt ${attempt}/${maxRetries} with model: ${actualModel}...`);
+            console.log(`   [CLI] Attempt ${attempt}/${maxRetries} with model: ${actualModel} (Key: ${currentKeyIndex})...`);
             const output = execFileSync('gemini', [
                 '-m', actualModel,
                 '--output-format', 'json',
@@ -50,7 +67,11 @@ async function geminiCLI(prompt, requestedModel = 'gemini-3-flash-preview', maxR
             ], { 
                 encoding: 'utf8', 
                 maxBuffer: 50 * 1024 * 1024, 
-                env: { ...process.env, GOOGLE_CLOUD_PROJECT: "pivotal-gearbox-486906-b0" } 
+                env: { 
+                    ...process.env, 
+                    GOOGLE_CLOUD_PROJECT: "pivotal-gearbox-486906-b0",
+                    GEMINI_API_KEY: apiKey // Rotating API Key
+                } 
             });
             
             let rawJsonText = output.trim();
@@ -123,9 +144,14 @@ async function geminiGroundingRadarPython(prompt, requestedModel = null, maxRetr
     const actualModel = 'gemini-3-flash-preview';
 
     const executeWithRetry = async (attempt = 1) => {
+        const apiKey = getNextAPIKey();
         try {
             console.log(`   (Calling Python gsearch attempt ${attempt}/${maxRetries} using ${actualModel}...)`);
-            const env = { ...process.env, GEMINI_MODEL: actualModel };
+            const env = { 
+                ...process.env, 
+                GEMINI_MODEL: actualModel,
+                GEMINI_API_KEY: apiKey // Rotating API Key
+            };
             const cmd = `"${gsearchScript}" "$(cat ${tmpFile})"`;
             const output = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, env });
             
@@ -236,10 +262,15 @@ if __name__ == "__main__":
     try {
         const venvPython = path.resolve(__dirname, '../../../skills/google-web-search/.venv/bin/python');
         const pythonExecutable = fs.existsSync(venvPython) ? venvPython : 'python3';
+        const apiKey = getNextAPIKey();
         const output = execFileSync(pythonExecutable, [pythonScript, prompt], {
             encoding: 'utf8',
             maxBuffer: 50 * 1024 * 1024,
-            env: { ...process.env, GEMINI_MODEL: requestedModel }
+            env: { 
+                ...process.env, 
+                GEMINI_MODEL: requestedModel,
+                GEMINI_API_KEY: apiKey // Rotating API Key
+            }
         });
         return JSON.parse(output.trim());
     } catch (e) {
