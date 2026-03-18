@@ -2,11 +2,17 @@ const fs = require('fs');
 const { execSync, execFileSync } = require('child_process');
 const path = require('path');
 
+// Load environment variables if .env exists
+const envPath = path.resolve(__dirname, '../.env');
+if (fs.existsSync(envPath)) {
+    require('dotenv').config({ path: envPath });
+}
+
 // 🔄 Key Rotation State
 const API_KEYS = [
-    process.env.GEMINI_API_KEY, // Default key from env
-    'AIzaSyABlObN_S6LyByCOY6ka1rJHF_OUdEGpFI',
-    'AIzaSyABjlFKJopGaFZbNxCL8jxaxDciNImSKSE'
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3
 ].filter(k => k && k.trim() !== '');
 
 let currentKeyIndex = 0;
@@ -59,7 +65,7 @@ async function geminiCLI(prompt, requestedModel = 'gemini-3-flash-preview', maxR
     const executeWithRetry = async (attempt = 1) => {
         const apiKey = getNextAPIKey();
         try {
-            console.log(`   [CLI] Attempt ${attempt}/${maxRetries} with model: ${actualModel} (Key: ${currentKeyIndex})...`);
+            console.log(`   [CLI] Attempt ${attempt}/${maxRetries} with model: ${actualModel} (Key index: ${currentKeyIndex})...`);
             const output = execFileSync('gemini', [
                 '-m', actualModel,
                 '--output-format', 'json',
