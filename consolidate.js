@@ -15,7 +15,7 @@ const pool = new Pool({
 
 async function getTopStories(limit = 5) {
     const res = await pool.query(`
-        SELECT story_id, label 
+        SELECT story_id, label, category_id 
         FROM story 
         ORDER BY interest_score DESC, last_updated DESC 
         LIMIT $1
@@ -71,7 +71,12 @@ function validateReferences(result, rawText, groundingMetadata) {
     // 2. Extract Supports and Inject Placeholders into summary
     if (groundingMetadata.groundingSupports && groundingMetadata.groundingSupports.length > 0) {
         // Find where summary is in rawText to handle index offsets
-        const summaryKey = '"summary":';
+        // For zh summary, we need to find "summary_zh": or "summary":
+        let summaryKey = '"summary":';
+        if (rawText.includes('"summary_zh":')) {
+            summaryKey = '"summary_zh":';
+        }
+        
         const summaryKeyIdx = rawText.indexOf(summaryKey);
         
         if (summaryKeyIdx !== -1) {
@@ -97,10 +102,14 @@ function validateReferences(result, rawText, groundingMetadata) {
                 // Inject placeholders into the summary text [ref:1, 2]
                 // We sort descending by endIndex to insert from back to front
                 const sortedInjections = [...supports].sort((a, b) => b.endIndex - a.endIndex);
+                
+                // If we are in ZH mode, result.summary might be the ZH one
                 let summaryWithRefs = result.summary;
                 for (const sup of sortedInjections) {
                     let insertPos = sup.endIndex;
-                    // If insertPos is in the middle of a word, move it to the end of the word
+                    
+                    // For English, move to end of word. For Chinese, the endIndex is usually fine as it's char-based
+                    // but we'll keep a simpler check for whitespace/punctuation if needed.
                     while (insertPos < summaryWithRefs.length && /\w/.test(summaryWithRefs[insertPos])) {
                         insertPos++;
                     }
@@ -137,9 +146,35 @@ async function fetchThumbnails(urls) {
 }
 
 async function processStory(story) {
-    console.log(`\n🔄 Processing story: ${story.label} (${story.story_id})`);
+    console.log(`\n🔄 Processing story: ${story.label} (${story.story_id}) [Category: ${story.category_id}]`);
     const history = await getStoryHistory(story.story_id);
     
+    const isLocal = story.category_id === 'local_news' || story.category_id === 'local_entertainment';
+    
+    let languageRequirement = '';
+    let jsonStructure = '';
+    
+    if (isLocal) {
+        languageRequirement = `
+- **Direct Language Requirement**: The story is under Hong Kong Local News/Entertainment. You MUST write the "title_zh", "sub_title_zh", and "summary_zh" DIRECTLY in Traditional Chinese (Hong Kong style).
+- Do NOT provide English versions for these fields if they are local stories.`;
+        jsonStructure = `
+{
+	"title_zh": "繁體中文標題",
+	"sub_title_zh": "繁體中文子標題 (提供背景資料)",
+	"summary_zh": "繁體中文詳盡文章總結 (多個段落)...",
+	"status": "ongoing"
+}`;
+    } else {
+        jsonStructure = `
+{
+	"title": "One line title here",
+	"sub_title": "Descriptive sub-title providing context",
+	"summary": "Full article with multiple paragraphs...",
+	"status": "ongoing"
+}`;
+    }
+
     const prompt = `
 You are generating a comprehensive daily intelligence report for a tracked News Story.
 
@@ -149,17 +184,12 @@ Requirements:
 - Produce a ONE LINE TITLE (around 10-15 words) for today's development.
 - Produce a SUB-TITLE (around 20-30 words) providing context for the development.
 - Produce an ARTICLE-STYLE SUMMARY with multiple paragraphs (total around 500 words).
-- DO NOT include inline references like [1] or [2] in your response. I will add them myself based on the grounding metadata.
+- DO NOT include inline references like [1] or [2] in your response. I will add them myself based on the grounding metadata.${languageRequirement}
 - If NO significant news or new developments are found for this specific story within the past 24 hours, return exactly:
   { "summary": "NO_NEW_DEVELOPMENTS", "status": "stable", "sources": [] }
 
 Reply in strict JSON with the following structure:
-{
-	"title": "One line title here",
-	"sub_title": "Descriptive sub-title providing context",
-	"summary": "Full article with multiple paragraphs...",
-	"status": "ongoing"
-}
+${jsonStructure}
 
 TARGET STORY:
 	name: ${story.label}
@@ -190,15 +220,27 @@ TARGET STORY:
             
             const articleData = JSON.parse(response.text.substring(firstBrace, lastBrace + 1));
             
-            result = {
-                title: articleData.title,
-                sub_title: articleData.sub_title,
-                summary: articleData.summary,
-                status: articleData.status || "ongoing",
-                groundingMetadata: response.groundingMetadata
-            };
+            if (isLocal) {
+                result = {
+                    title_zh: articleData.title_zh,
+                    sub_title_zh: articleData.sub_title_zh,
+                    summary: articleData.summary_zh, // Map to internal 'summary' for re-processing
+                    status: articleData.status || "ongoing",
+                    isLocal: true,
+                    groundingMetadata: response.groundingMetadata
+                };
+            } else {
+                result = {
+                    title: articleData.title,
+                    sub_title: articleData.sub_title,
+                    summary: articleData.summary,
+                    status: articleData.status || "ongoing",
+                    isLocal: false,
+                    groundingMetadata: response.groundingMetadata
+                };
+            }
 
-            if (result.title && result.summary && validateReferences(result, response.text, response.groundingMetadata)) {
+            if ((result.title || result.title_zh) && result.summary && validateReferences(result, response.text, response.groundingMetadata)) {
                 if (result.sources && result.sources.length > 0) {
                     console.log(`   🔗 Resolving ${result.sources.length} news URLs...`);
                     result.sources = await resolveSources(result.sources);
@@ -234,21 +276,41 @@ async function saveTimeline(storyId, data) {
     try {
         await client.query('BEGIN');
         
-        await client.query(`
-            INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails, grounding_supports, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-            ON CONFLICT (story_id, date) 
-            DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7, grounding_supports = $8, updated_at = NOW()
-        `, [
-            storyId, 
-            today, 
-            data.title, 
-            data.sub_title, 
-            data.summary, 
-            data.status.toLowerCase(), 
-            JSON.stringify(data.thumbnails || []),
-            JSON.stringify(data.groundingSupports || [])
-        ]);
+        if (data.isLocal) {
+            // Save directly to ZH columns
+            await client.query(`
+                INSERT INTO story_timeline (story_id, date, title_zh, sub_title_zh, summary_zh, story_status_id, thumbnails, grounding_supports, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+                ON CONFLICT (story_id, date) 
+                DO UPDATE SET title_zh = $3, sub_title_zh = $4, summary_zh = $5, story_status_id = $6, thumbnails = $7, grounding_supports = $8, updated_at = NOW()
+            `, [
+                storyId, 
+                today, 
+                data.title_zh, 
+                data.sub_title_zh, 
+                data.summary, // The summary with refs injected by validateReferences
+                data.status.toLowerCase(), 
+                JSON.stringify(data.thumbnails || []),
+                JSON.stringify(data.groundingSupports || [])
+            ]);
+        } else {
+            // Save to standard columns
+            await client.query(`
+                INSERT INTO story_timeline (story_id, date, title, sub_title, summary, story_status_id, thumbnails, grounding_supports, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+                ON CONFLICT (story_id, date) 
+                DO UPDATE SET title = $3, sub_title = $4, summary = $5, story_status_id = $6, thumbnails = $7, grounding_supports = $8, updated_at = NOW()
+            `, [
+                storyId, 
+                today, 
+                data.title, 
+                data.sub_title, 
+                data.summary, 
+                data.status.toLowerCase(), 
+                JSON.stringify(data.thumbnails || []),
+                JSON.stringify(data.groundingSupports || [])
+            ]);
+        }
 
         await client.query(`DELETE FROM story_timeline_source WHERE story_id = $1 AND date = $2`, [storyId, today]);
         if (Array.isArray(data.sources)) {
