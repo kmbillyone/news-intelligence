@@ -13,14 +13,24 @@ const pool = new Pool({
     port: 5432,
 });
 
-async function getTopStories(limit = 5) {
-    const res = await pool.query(`
-        SELECT story_id, label, category_id 
-        FROM story 
-        ORDER BY interest_score DESC, last_updated DESC 
-        LIMIT $1
-    `, [limit]);
-    return res.rows;
+async function getTopStories(limitPerCategory = 6) {
+    const categoriesRes = await pool.query('SELECT category_id FROM category');
+    const categories = categoriesRes.rows.map(r => r.category_id);
+    
+    let allStories = [];
+    for (const catId of categories) {
+        const res = await pool.query(`
+            SELECT story_id, label, category_id 
+            FROM story 
+            WHERE category_id = $1
+            ORDER BY interest_score DESC, last_updated DESC 
+            LIMIT $2
+        `, [catId, limitPerCategory]);
+        allStories = allStories.concat(res.rows);
+    }
+    
+    // Shuffle or sort by interest score across all selected
+    return allStories.sort((a, b) => b.interest_score - a.interest_score);
 }
 
 async function getStoryHistory(storyId, days = 5) {
@@ -336,8 +346,8 @@ async function saveTimeline(storyId, data) {
 
 async function main() {
     console.log('🌟 Starting Comprehensive Story Consolidation Job...');
-    const stories = await getTopStories(25);
-    console.log(`📋 Processing ${stories.length} stories.`);
+    const stories = await getTopStories(6); // 6 per category
+    console.log(`📋 Processing ${stories.length} stories across categories.`);
 
     for (let i = 0; i < stories.length; i++) {
         const story = stories[i];
