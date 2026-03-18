@@ -14,8 +14,8 @@ const TRANSLATION_MODEL = 'gemini-2.5-flash-lite';
 async function translateBatch() {
     console.log(`🌐 Starting Translation Batch (Optimized using ${TRANSLATION_MODEL})...`);
 
-    // 1. Stories Labels
-    const storiesRes = await pool.query(`SELECT story_id, label FROM story WHERE label_zh IS NULL LIMIT 20`);
+    // 1. Stories Labels (Increased limit to 40)
+    const storiesRes = await pool.query(`SELECT story_id, label FROM story WHERE label_zh IS NULL LIMIT 40`);
     if (storiesRes.rows.length > 0) {
         console.log(`📝 Translating ${storiesRes.rows.length} story labels in batch...`);
         const prompt = `Translate these story labels into Traditional Chinese (Hong Kong context). 
@@ -43,7 +43,7 @@ Format: [{"story_id": "...", "label_zh": "..."}]`;
         WHERE (title_zh IS NULL OR sub_title_zh IS NULL OR summary_zh IS NULL) 
         AND summary != 'NO_NEW_DEVELOPMENTS'
         ORDER BY date DESC
-        LIMIT 15
+        LIMIT 35
     `);
 
     if (timelineRes.rows.length > 0) {
@@ -55,7 +55,7 @@ Format: [{"story_id": "...", "label_zh": "..."}]`;
             
             // Extract references per paragraph and clean up the input summary for translation
             const batchWithRefHints = batch.map(row => {
-                const paragraphs = row.summary.split(/\n+/);
+                const paragraphs = row.summary ? row.summary.split(/\n+/) : [];
                 const pRefs = [];
                 const cleanParagraphs = paragraphs.map(p => {
                     const matches = p.match(/\[ref:[\d, ]+\]/g);
@@ -97,6 +97,11 @@ Format: [{"story_id": "...", "date_str": "...", "title_zh": "...", "sub_title_zh
                 }
             } catch (e) { 
                 console.error(`      ❌ Batch failed: ${e.message}. Will try next batch or individual fallback in next run.`); 
+            }
+            
+            // Wait 15s between batches to avoid rate limit
+            if (i + BATCH_SIZE < timelineRes.rows.length) {
+                await new Promise(res => setTimeout(res, 15000));
             }
         }
     }
