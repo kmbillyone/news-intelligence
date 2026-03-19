@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIIA 情報室 | AI Intelligence Agency</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#00ff41">
+    <style>
+        :root {
+            --bg: #FFFFFF;
+            --surface: #FFFFFF;
+            --accent: #00ff41; 
+            --text: #1a1a1a;
+            --text-dim: #666666;
+            --border: #eeeeee;
+            --header-bg: #00ff41;
+            --header-text: #000000;
+            --highlight: #f0fff4;
+            --escalating: #FF0000;
+            --new-tag: #008000;
+            --side-padding: 4%;
+            --max-width: 1200px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Noto Sans TC', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 0.8rem var(--side-padding);
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container { display: flex; align-items: baseline; gap: 0.8rem; }
+        .logo {
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo span.badge {
+            background-color: #000;
+            color: var(--accent);
+            padding: 0.1rem 0.4rem;
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .logo-en { font-size: 0.85rem; font-weight: 700; opacity: 0.8; letter-spacing: 0.5px; display: none; }
+        @media (min-width: 768px) { .logo-en { display: block; } }
+
+        .header-date { font-size: 0.8rem; font-weight: 700; text-align: right; }
+
+        main {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Weather Banner */
+        .weather-banner {
+            background: #fdfdfd;
+            padding: 1.2rem var(--side-padding);
+            border-bottom: 1px solid var(--border);
+            display: none;
+            gap: 2rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .weather-current { display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+        .weather-icon-large { font-size: 2.5rem; }
+        .weather-temp-main { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+        .weather-info-small { font-size: 0.75rem; color: var(--text-dim); font-weight: 700; margin-top: 2px; }
+
+        /* Weather Icon Colors */
+        .fa-sun, .fa-moon { color: #ffae00; }
+        .fa-cloud-sun, .fa-cloud-moon { color: #ff9900; }
+        .fa-cloud { color: #adb5bd; }
+        .fa-cloud-rain, .fa-cloud-showers-heavy, .fa-cloud-showers-water { color: #4dabf7; }
+        .fa-bolt-lightning { color: #ffd43b; }
+        .fa-snowflake { color: #74c0fc; }
+        .fa-smog { color: #ced4da; }
+
+        .weather-hourly-container { 
+            display: flex; 
+            gap: 1.2rem; 
+            overflow-x: auto; 
+            padding: 5px 0; 
+            scrollbar-width: none;
+            justify-content: flex-end;
+            flex: 1;
+        }
+        .weather-hourly-container::-webkit-scrollbar { display: none; }
+        
+        .hourly-item { text-align: center; min-width: 50px; flex-shrink: 0; }
+        .hourly-time { font-size: 0.65rem; font-weight: 700; color: var(--text-dim); margin-bottom: 4px; }
+        .hourly-icon { font-size: 1.2rem; margin: 4px 0; display: block; }
+        .hourly-temp { font-size: 0.85rem; font-weight: 900; color: #222; }
+        .hourly-extra { font-size: 0.6rem; font-weight: 700; color: #339af0; margin-top: 2px; }
+
+        @media (max-width: 600px) {
+            .weather-banner { gap: 1rem; padding: 1rem var(--side-padding); }
+            .weather-hourly-container { justify-content: flex-start; }
+            .weather-icon-large { font-size: 2rem; }
+            .weather-temp-main { font-size: 1.8rem; }
+        }
+
+        .featured-section {
+            padding: 1.5rem var(--side-padding);
+            background: #fafafa;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .featured-header {
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--new-tag);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .featured-card { display: flex; flex-direction: column; gap: 1.5rem; }
+
+        .featured-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin: 0.3rem 0; line-height: 1.2;
+        }
+
+        .featured-sub { font-size: 1rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+
+        .featured-img-container {
+            width: 100%; height: auto; max-height: 250px; overflow: hidden; border-radius: 4px;
+        }
+
+        @media (min-width: 768px) {
+            .featured-card { flex-direction: row; align-items: flex-start; }
+            .featured-title { font-size: 2rem; }
+            .featured-img-container { width: 45%; max-height: 350px; }
+        }
+
+        .category-section {
+            padding: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-title {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #000;
+            margin: 0;
+            padding: 0.8rem var(--side-padding);
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: sticky;
+            top: 3.2rem; 
+            z-index: 1000;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.02);
+        }
+
+        .story-list { padding: 1rem var(--side-padding); }
+
+        @media (min-width: 992px) {
+            .story-list {
+                display: grid;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 2.5rem;
+                align-items: start;
+            }
+            .story-item-first { border-bottom: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
+            .story-compact-container { border-left: 1px solid var(--border); padding-left: 2rem; }
+        }
+
+        .story-item-first {
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .story-item-first .item-title { font-size: 1.4rem; font-weight: 900; margin: 0.5rem 0; }
+
+        .story-item-compact {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+        }
+
+        .story-item-compact:last-child { border-bottom: none; }
+
+        .item-text { flex: 1; }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .item-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-tag {
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 0.05rem 0.3rem;
+            border-radius: 2px;
+            text-transform: uppercase;
+            color: #FFF;
+        }
+        .status-new { background: var(--new-tag); }
+        .status-escalating { background: var(--escalating); }
+        .status-ongoing { background: #999; }
+
+        .item-title { font-size: 1.1rem; font-weight: 700; line-height: 1.3; margin: 0; }
+
+        .item-updated-row {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        
+        .status-mini-label {
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            background: #f0f0f0;
+            color: var(--text-dim);
+        }
+        .status-mini-label.new { background: #008000; color: #fff; }
+        .status-mini-label.escalating { background: var(--escalating); color: #fff; }
+        .status-mini-label.ongoing { background: #999; color: #fff; }
+
+        .item-thumb {
+            width: 80px; height: 80px; flex-shrink: 0; background: #eee; border-radius: 2px; overflow: hidden;
+        }
+        .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Detail View */
+        #detail-view { display: none; padding: 1.5rem var(--side-padding); }
+
+        .detail-container { display: flex; flex-direction: column; gap: 2rem; }
+
+        @media (min-width: 992px) {
+            .detail-container { flex-direction: row; }
+            .article-main { flex: 1; min-width: 0; }
+            .article-sidebar { width: 300px; position: sticky; top: 80px; align-self: flex-start; }
+        }
+
+        .nav-controls { margin-bottom: 1.5rem; }
+        .back-btn {
+            background: none; border: none; font-weight: 700; cursor: pointer; color: var(--text);
+            display: flex; align-items: center; padding: 0; gap: 0.5rem; font-size: 1rem;
+        }
+
+        .article-header {
+            margin-bottom: 1rem;
+            display: block !important;
+            position: static !important;
+            background: none !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .article-title { font-size: 1.8rem; font-weight: 900; line-height: 1.2; margin-bottom: 0.5rem; color: #000; }
+        .article-sub { font-size: 1.15rem; color: var(--text-dim); font-weight: 400; line-height: 1.4; margin-bottom: 0.8rem; }
+        .article-byline { font-size: 0.85rem; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+        .article-img-main { width: 100%; height: auto; max-height: 400px; object-fit: cover; border-radius: 4px; margin-bottom: 1.5rem; }
+        .article-content { font-size: 1.1rem; line-height: 1.7; color: #222; white-space: pre-wrap; }
+        .article-content p { margin-bottom: 1.2rem; }
+        
+        .article-content a { 
+            color: var(--text); text-decoration: none; font-weight: 700; font-size: 0.75rem;
+            background: #f0f0f0; padding: 1px 5px; border-radius: 10px; margin: 0 2px;
+            vertical-align: super; display: inline-block; line-height: 1;
+        }
+        .article-content a:hover { background: #e0e0e0; }
+
+        .article-sources { margin-top: 3rem; padding-top: 1.5rem; border-top: 2px solid #000; }
+        .sources-title { font-size: 1rem; font-weight: 900; margin-bottom: 1rem; text-transform: uppercase; }
+        .source-item { font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; gap: 0.8rem; align-items: baseline; }
+        .source-num { font-weight: 900; color: var(--text-dim); min-width: 1.2rem; }
+        .source-link { color: var(--new-tag); text-decoration: none; font-weight: 700; }
+
+        .sidebar-title { font-size: 1rem; font-weight: 900; margin-bottom: 2rem; text-transform: uppercase; border-bottom: 2px solid #000; display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Timeline Style */
+        .timeline-container { position: relative; padding-left: 20px; }
+        .timeline-container::before { content: ""; position: absolute; left: 4px; top: 5px; bottom: 5px; width: 2px; background: var(--border); }
+        .timeline-item { position: relative; padding-bottom: 1.5rem; cursor: pointer; }
+        .timeline-item::after { content: ""; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid var(--border); z-index: 1; }
+        .timeline-item.active::after { background: var(--accent); border-color: var(--accent); }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-date { font-size: 0.75rem; font-weight: 700; color: var(--new-tag); display: block; margin-bottom: 2px; }
+        .timeline-title { font-size: 0.9rem; font-weight: 700; line-height: 1.3; color: var(--text); }
+        .timeline-item.active .timeline-title { color: #000; font-weight: 900; }
+
+        footer {
+            background: #f9f9f9; text-align: center; padding: 4rem 2rem; color: var(--text-dim); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 4rem;
+        }
+        .footer-name { font-weight: 900; color: #000; display: block; margin-bottom: 0.3rem; }
+
+        .show-more-btn { background: none; border: 1px solid var(--border); width: 100%; padding: 0.8rem; margin-top: 1rem; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <header id="main-header">
+        <div class="header-inner">
+            <div class="logo-container">
+                <div class="logo"><span class="badge">AIIA</span> 情報室</div>
+                <div class="logo-en">AI Intelligence Agency</div>
+            </div>
+            <div class="header-date" id="top-date"></div>
+        </div>
+    </header>
+
+    <main>
+        <div id="weather-banner" class="weather-banner"></div>
+
+        <div id="index-view">
+            <div id="featured-story"></div>
+            <div id="category-sections">
+                <!-- Skeleton UI -->
+                <div style="padding: 1.5rem var(--side-padding);">
+                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; align-items: center;">
+                        <div style="width: 60px; height: 60px; background: #eee; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+                        <div style="flex: 1;">
+                            <div style="width: 100px; height: 2rem; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite; margin-bottom: 0.5rem;"></div>
+                            <div style="width: 150px; height: 1rem; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem;">
+                        <div>
+                            <div style="width: 40%; height: 1rem; background: #eee; margin-bottom: 1rem; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                            <div style="width: 100%; height: 2.5rem; background: #eee; margin-bottom: 1rem; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                            <div style="width: 100%; height: 300px; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                        </div>
+                        <div>
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div style="flex: 1; height: 80px; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                                <div style="width: 80px; height: 80px; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div style="flex: 1; height: 80px; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                                <div style="width: 80px; height: 80px; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="detail-view">
+            <div class="nav-controls">
+                <button class="back-btn" onclick="showIndex()">
+                    <i class="fa-solid fa-chevron-left"></i> 返回主頁
+                </button>
+            </div>
+            <div class="detail-container">
+                <div class="article-main">
+                    <article>
+                        <header class="article-header">
+                            <div class="item-meta" style="margin-bottom: 0.5rem;"><span class="item-label" id="det-label"></span></div>
+                            <h1 class="article-title" id="det-title"></h1>
+                            <div class="article-sub" id="det-sub"></div>
+                            <span class="article-byline" id="det-byline"></span>
+                        </header>
+                        <div id="det-img-container"></div>
+                        <div class="article-content" id="det-content"></div>
+                        <section class="article-sources">
+                            <div class="sources-title">參考來源 Sources</div>
+                            <div id="det-sources"></div>
+                        </section>
+                    </article>
+                </div>
+                <aside class="article-sidebar">
+                    <div class="sidebar-title"><i class="fa-solid fa-clock-rotate-left"></i> 事件追蹤 Timeline</div>
+                    <div id="det-timeline" class="timeline-container"></div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <span class="footer-name">AI Intelligence Agency</span>
+        &copy; 2026 AI Intelligence Agency. Maintained by Agent 小艾.
+        <div id="footer-update-time" style="margin-top: 10px; font-size: 0.85em; opacity: 0.8;"></div>
+    </footer>
+
+    <script>
+        let allStories = [];
+        let topTheme = null;
+        const expandedCategories = new Set();
+        
+        const CATEGORY_MAP = {
+            'hong_kong': { name: '本港新聞', icon: 'fa-location-dot' },
+            'local_news': { name: '本港新聞', icon: 'fa-location-dot' },
+            'international': { name: '國際視野', icon: 'fa-globe' },
+            'international_news': { name: '國際視野', icon: 'fa-globe' },
+            'technology': { name: '科技創新', icon: 'fa-microchip' },
+            'tech_science': { name: '科技創新', icon: 'fa-microchip' },
+            'global_trending': { name: '全球熱話', icon: 'fa-fire' },
+            'finance': { name: '財經金融', icon: 'fa-chart-line' },
+            'health': { name: '健康醫療', icon: 'fa-heart-pulse' },
+            'science': { name: '科學探索', icon: 'fa-flask' },
+            'local_entertainment': { name: '娛樂綜藝', icon: 'fa-clapperboard' },
+            'entertainment': { name: '娛樂綜藝', icon: 'fa-clapperboard' },
+            'lifestyle': { name: '生活文化', icon: 'fa-mug-hot' },
+            'general': { name: '綜合情報', icon: 'fa-newspaper' }
+        };
+
+        const today = new Date();
+        document.getElementById('top-date').innerText = today.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+        function getTimeAgo(dateStr) {
+            const d = new Date(dateStr);
+            const diffHr = Math.floor((new Date() - d) / (1000 * 60 * 60));
+            if (diffHr < 1) return '剛剛更新';
+            if (diffHr < 24) return diffHr + ' 小時前更新';
+            return Math.floor(diffHr / 24) + ' 天前更新';
+        }
+
+        const hkoIconMap = {
+            50: 'fa-sun', 51: 'fa-sun', 52: 'fa-sun',
+            53: 'fa-cloud-sun', 54: 'fa-cloud-sun',
+            60: 'fa-cloud', 61: 'fa-cloud',
+            62: 'fa-cloud-sun-rain', 63: 'fa-cloud-showers-heavy', 64: 'fa-cloud-rain', 65: 'fa-cloud-showers-water',
+            70: 'fa-moon', 71: 'fa-moon', 72: 'fa-moon', 73: 'fa-cloud-moon', 74: 'fa-cloud-moon', 75: 'fa-moon', 
+            76: 'fa-cloud-rain', 77: 'fa-bolt-lightning',
+            80: 'fa-wind', 81: 'fa-wind', 82: 'fa-wind',
+            default: 'fa-cloud'
+        };
+
+        const wmoIconMap = {
+            0: 'fa-sun',
+            1: 'fa-cloud-sun', 2: 'fa-cloud', 3: 'fa-cloud',
+            45: 'fa-smog', 48: 'fa-smog',
+            51: 'fa-cloud-rain', 53: 'fa-cloud-rain', 55: 'fa-cloud-rain',
+            61: 'fa-cloud-showers-heavy', 63: 'fa-cloud-showers-heavy', 65: 'fa-cloud-showers-heavy',
+            71: 'fa-snowflake', 73: 'fa-snowflake', 75: 'fa-snowflake',
+            80: 'fa-cloud-showers-water', 81: 'fa-cloud-showers-water', 82: 'fa-cloud-showers-water',
+            95: 'fa-bolt-lightning', 96: 'fa-bolt-lightning', 99: 'fa-bolt-lightning',
+            default: 'fa-cloud'
+        };
+
+        function getIconClass(code, type = 'hko') {
+            const map = type === 'wmo' ? wmoIconMap : hkoIconMap;
+            return map[code] || map.default;
+        }
+
+        function loadWeather(weather) {
+            const banner = document.getElementById('weather-banner');
+            if (!banner || !weather) return;
+            try {
+                const curr = weather.current;
+                const hourly = weather.hourly;
+                
+                if (!curr || !curr.temperature) return;
+
+                const obsData = curr.temperature.data.find(d => d.place === '香港天文台') || curr.temperature.data[0];
+                const temp = obsData ? obsData.value : '--';
+                const humidity = curr.humidity.data[0] ? curr.humidity.data[0].value : '--';
+                const iconCode = curr.icon[0];
+                const iconClass = getIconClass(iconCode, 'hko');
+                
+                let html = `
+                    <div class="weather-current">
+                        <i class="fa-solid ${iconClass} weather-icon-large"></i>
+                        <div>
+                            <div class="weather-temp-main">${temp}°</div>
+                            <div class="weather-info-small">濕度 ${humidity}%</div>
+                        </div>
+                    </div>
+                `;
+
+                if (hourly && hourly.hourly) {
+                    html += `<div class="weather-hourly-container">`;
+                    
+                    const now = new Date();
+                    const times = hourly.hourly.time;
+                    const temps = hourly.hourly.temperature_2m;
+                    const probs = hourly.hourly.precipitation_probability;
+                    const codes = hourly.hourly.weather_code;
+                    
+                    // Specific times to show: 09:00, 13:00, 17:00, 21:00, 00:00 (of next day if needed)
+                    const targetHours = [9, 13, 17, 21];
+                    
+                    // Map to hold unique hour entries
+                    const filtered = [];
+                    times.forEach((t, i) => {
+                        const d = new Date(t);
+                        const h = d.getHours();
+                        if (targetHours.includes(h)) {
+                            // Only add if not already added for this specific hour slot
+                            const timeStr = h === 0 ? '00:00' : h.toString().padStart(2, '0') + ':00';
+                            if (!filtered.find(x => x.timeStr === timeStr)) {
+                                filtered.push({
+                                    timeStr: timeStr,
+                                    temp: Math.round(temps[i]),
+                                    prob: probs[i],
+                                    icon: getIconClass(codes[i], 'wmo')
+                                });
+                            }
+                        }
+                    });
+
+                    filtered.forEach(item => {
+                        html += `
+                            <div class="hourly-item">
+                                <div class="hourly-time">${item.timeStr}</div>
+                                <i class="fa-solid ${item.icon} hourly-icon"></i>
+                                <div class="hourly-temp">${item.temp}°</div>
+                                <div class="hourly-extra">${item.prob}%</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                }
+                
+                banner.innerHTML = html;
+                banner.style.display = 'flex';
+            } catch (err) {
+                console.error('Weather display fail', err);
+                banner.style.display = 'none';
+            }
+        }
+
+        async function load() {
+            try {
+                const r = await fetch('data.json?v=' + new Date().getTime());
+                const data = await r.json();
+                allStories = data.stories;
+                topTheme = data.topTheme;
+                if (data.generatedAt) {
+                    const genDate = new Date(data.generatedAt);
+                    document.getElementById('footer-update-time').innerText = '最後更新時間: ' + genDate.toLocaleString('zh-Hant');
+                }
+                
+                if (data.weather) {
+                    loadWeather(data.weather);
+                }
+
+                const hash = window.location.hash.substring(1);
+                if (hash) {
+                    const parts = hash.split(':');
+                    const sIdx = allStories.findIndex(s => s.story_id === parts[0]);
+                    if (sIdx !== -1) { showDetail(sIdx, parts[1]); return; }
+                }
+                showIndex();
+            } catch (err) { console.error(err); }
+        }
+
+        function toggleCategory(cat) {
+            expandedCategories.has(cat) ? expandedCategories.delete(cat) : expandedCategories.add(cat);
+            const scrollPos = window.scrollY;
+            showIndex();
+            window.scrollTo(0, scrollPos);
+        }
+
+        function getStatusTagsHtml(status, lastUpdated, isNew) {
+            let tags = [];
+            const isWithin24h = (new Date() - new Date(lastUpdated)) < 24 * 60 * 60 * 1000;
+            if (isWithin24h && isNew) {
+                tags.push(`<span class="status-mini-label new"><i class="fa-solid fa-sparkles"></i> 新情報 New</span>`);
+            } else if (isWithin24h && !isNew) {
+                tags.push(`<span class="status-mini-label ongoing" style="background:#0066ff; color:#fff"><i class="fa-solid fa-rotate"></i> 有新進展 Updated</span>`);
+            }
+            
+            if (status === 'escalating') {
+                tags.push(`<span class="status-mini-label escalating"><i class="fa-solid fa-arrow-trend-up"></i> 事態升溫 Escalating</span>`);
+            } else {
+                tags.push(`<span class="status-mini-label ongoing"><i class="fa-solid fa-check"></i> 持續追蹤 Ongoing</span>`);
+            }
+            return tags.join('');
+        }
+
+        function showIndex() {
+            window.location.hash = '';
+            document.getElementById('detail-view').style.display = 'none';
+            document.getElementById('index-view').style.display = 'block';
+            if (document.getElementById('weather-banner')) {
+                document.getElementById('weather-banner').style.display = 'flex';
+            }
+            
+            if (topTheme) {
+                const imgUrl = topTheme.thumbnails && topTheme.thumbnails.length > 0 ? topTheme.thumbnails[0] : null;
+                const tagsHtml = getStatusTagsHtml(topTheme.status, topTheme.last_updated, topTheme.isNew);
+                const idx = allStories.findIndex(x => x.story_id === topTheme.story_id);
+                document.getElementById('featured-story').innerHTML = `
+                    <section class="featured-section" onclick=\"showDetail(${idx})\">
+                        <span class=\"featured-header\"><i class=\"fa-solid fa-star\"></i> 今日焦點新聞</span>
+                        <div class=\"featured-card\">
+                            <div class=\"item-text\">
+                                <div class=\"item-meta\"><span class=\"item-label\">${topTheme.label_zh || topTheme.label}</span></div>
+                                <h1 class=\"featured-title\">${topTheme.title_zh || topTheme.title}</h1>
+                                <p class=\"featured-sub\">${topTheme.sub_title_zh || topTheme.sub_title}</p>
+                                <div class=\"item-updated-row\">
+                                    <span><i class=\"fa-regular fa-clock\"></i> ${getTimeAgo(topTheme.last_updated)}</span>
+                                    ${tagsHtml}
+                                </div>
+                            </div>
+                            ${imgUrl ? `<div class=\"featured-img-container\"><img class=\"card-img\" src=\"${imgUrl}\" style=\"width:100%\"></div>` : ''}
+                        </div>
+                    </section>
+                `;
+            }
+
+            const groups = {};
+            allStories.forEach(s => {
+                if (topTheme && s.story_id === topTheme.story_id) return;
+                const cat = s.category_id || 'general';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(s);
+            });
+
+            // Sorting logic
+            Object.keys(groups).forEach(cat => {
+                groups[cat].sort((a, b) => {
+                    const aRecent = (new Date() - new Date(a.last_updated)) < 24 * 60 * 60 * 1000;
+                    const bRecent = (new Date() - new Date(b.last_updated)) < 24 * 60 * 60 * 1000;
+                    if (aRecent && !bRecent) return -1;
+                    if (!aRecent && bRecent) return 1;
+                    if (aRecent && bRecent) {
+                        if (a.isNew && !b.isNew) return -1;
+                        if (!a.isNew && b.isNew) return 1;
+                    }
+                    return new Date(b.last_updated) - new Date(a.last_updated);
+                });
+            });
+
+            const order = ['hong_kong', 'local_news', 'international', 'international_news', 'technology', 'tech_science', 'global_trending'];
+            const sortedCats = Object.keys(groups).sort((a, b) => {
+                let idxA = order.indexOf(a);
+                let idxB = order.indexOf(b);
+                if (idxA === -1) idxA = 999;
+                if (idxB === -1) idxB = 999;
+                return idxA - idxB;
+            });
+
+            document.getElementById('category-sections').innerHTML = sortedCats.map(cat => {
+                const stories = groups[cat];
+                const catInfo = CATEGORY_MAP[cat] || { name: cat.toUpperCase().replace(/_/g, ' '), icon: 'fa-newspaper' };
+                const isExpanded = expandedCategories.has(cat);
+                const displayStories = isExpanded ? stories : stories.slice(0, 5);
+                
+                return `
+                    <section class=\"category-section\">
+                        <h2 class=\"category-title\"><i class=\"fa-solid ${catInfo.icon}\"></i> ${catInfo.name}</h2>
+                        <div class=\"story-list\">
+                            ${(() => {
+                                const firstStory = displayStories[0];
+                                const otherStories = displayStories.slice(1);
+                                
+                                const renderStory = (s, isFirst) => {
+                                    const i = allStories.findIndex(x => x.story_id === s.story_id);
+                                    const imgUrl = s.thumbnails && s.thumbnails.length > 0 ? s.thumbnails[0] : null;
+                                    const tagsHtml = getStatusTagsHtml(s.status, s.last_updated, s.isNew);
+                                    
+                                    if (isFirst) {
+                                        return `
+                                            <div class=\"story-item-first\" onclick=\"showDetail(${i})\">
+                                                <div class=\"item-meta\"><span class=\"item-label\">${s.label_zh || s.label}</span></div>
+                                                <div class=\"item-title\" style=\"font-size: 1.6rem; margin-bottom: 1rem;\">${s.title_zh || s.title}</div>
+                                                <p class=\"featured-sub\" style=\"font-size: 1.1rem; margin-bottom: 1.5rem;\">${s.sub_title_zh || s.sub_title || ''}</p>
+                                                <div class=\"item-updated-row\" style=\"margin-bottom: 1.5rem;\">
+                                                    <span><i class=\"fa-regular fa-clock\"></i> ${getTimeAgo(s.last_updated)}</span>
+                                                    ${tagsHtml}
+                                                </div>
+                                                ${imgUrl ? `<div class=\"featured-img-container\" style=\"max-height:350px;\"><img class=\"card-img\" src=\"${imgUrl}\" style=\"width:100%\"></div>` : ''}
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class=\"story-item-compact\" onclick=\"showDetail(${i})\">
+                                                <div class=\"item-text\">
+                                                    <div class=\"item-meta\"><span class=\"item-label\">${s.label_zh || s.label}</span></div>
+                                                    <h3 class=\"item-title\">${s.title_zh || s.title}</h3>
+                                                    <div class=\"item-updated-row\">
+                                                        <span><i class=\"fa-regular fa-clock\"></i> ${getTimeAgo(s.last_updated)}</span>
+                                                        ${tagsHtml}
+                                                    </div>
+                                                </div>
+                                                ${imgUrl ? `<div class=\"item-thumb\"><img src=\"${imgUrl}\"></div>` : ''}
+                                            </div>
+                                        `;
+                                    }
+                                };
+
+                                let html = renderStory(firstStory, true);
+                                if (otherStories.length > 0) {
+                                    html += `<div class=\"story-compact-container\">${otherStories.map(s => renderStory(s, false)).join('')}</div>`;
+                                }
+                                return html;
+                            })()}
+                        </div>
+                        ${stories.length > 5 ? `<button class=\"show-more-btn\" onclick=\"toggleCategory('${cat}')\">${isExpanded ? '收起' : '查看更多 (' + (stories.length - 5) + ' 條)'}</button>` : ''}
+                    </section>
+                `;
+            }).join('');
+        }
+
+        function showDetail(sIdx, targetDate = null) {
+            const s = allStories[sIdx];
+            const entry = targetDate ? s.timeline.find(t => t.date === targetDate) || s.timeline[0] : s.timeline[0];
+            window.location.hash = s.story_id + ':' + entry.date;
+            document.getElementById('index-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+            if (document.getElementById('weather-banner')) {
+                document.getElementById('weather-banner').style.display = 'none';
+            }
+            document.getElementById('det-label').innerText = s.label_zh || s.label;
+            document.getElementById('det-title').innerText = entry.title_zh || entry.title;
+            document.getElementById('det-sub').innerText = entry.sub_title_zh || entry.sub_title || '';
+            const d = new Date(entry.updated_at || s.last_updated);
+            const formattedDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            document.getElementById('det-byline').innerText = `Agent 小艾綜合報道 • 最後更新：${formattedDate} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+            const imgUrl = entry.thumbnails && entry.thumbnails.length > 0 ? entry.thumbnails[0] : (s.thumbnails && s.thumbnails.length > 0 ? s.thumbnails[0] : null);
+            document.getElementById('det-img-container').innerHTML = imgUrl ? `<img class=\"article-img-main\" src=\"${imgUrl}\">` : '';
+            
+            let summaryText = entry.summary_zh || entry.summary || '';
+            let contentHtml = summaryText.replace(/\[ref:([0-9.,\s]+)\]/g, (match, idsStr) => {
+                const ids = [...new Set(idsStr.split(',').map(x => x.trim()).filter(x => x))];
+                ids.sort((a, b) => parseFloat(a) - parseFloat(b));
+                const links = ids.map(id => {
+                    const baseId = id.split('.')[0];
+                    const src = entry.sources.find(x => x.id == baseId || x.id == id);
+                    return src ? `<a href="${src.url}" target="_blank">${id}</a>` : id;
+                });
+                return `${links.join(' ')}`;
+            });
+            contentHtml = contentHtml.replace(/\[([0-9.,\s]+)\]/g, (match, idsStr) => {
+                if (match.includes('ref:')) return match; 
+                const ids = [...new Set(idsStr.split(',').map(x => x.trim()).filter(x => x))];
+                ids.sort((a, b) => parseFloat(a) - parseFloat(b));
+                const links = ids.map(id => {
+                    const baseId = id.split('.')[0];
+                    const src = entry.sources.find(x => x.id == baseId || x.id == id);
+                    return src ? `<a href="${src.url}" target="_blank">${id}</a>` : id;
+                });
+                return `${links.join(' ')}`;
+            });
+            document.getElementById('det-content').innerHTML = contentHtml.replace(/\s+\[\]/g, '').replace(/\[\]/g, '');
+            const sortedSources = [...entry.sources].sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
+            document.getElementById('det-sources').innerHTML = sortedSources.map(src => `<div class=\"source-item\"><span class=\"source-num\">${src.id}</span><a href=\"${src.url}\" target=\"_blank\" class=\"source-link\">${src.publisher}</a></div>`).join('');
+            document.getElementById('det-timeline').innerHTML = s.timeline.map(t => `<div class=\"timeline-item ${t.date === entry.date ? 'active' : ''}\" onclick=\"showDetail(${sIdx}, '${t.date}')\"><span class=\"timeline-date\">${t.date}</span><div class=\"timeline-title\">${t.title_zh || t.title}</div></div>`).join('');
+            window.scrollTo(0, 0);
+        }
+        window.onload = load;
+        window.onpopstate = () => { if (!window.location.hash) showIndex(); };
+    </script>
+</body>
+</html>

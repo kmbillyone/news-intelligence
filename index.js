@@ -184,7 +184,7 @@ async function main() {
         log(renderOut);
 
         log('   Building Story Website...');
-        const buildOut = execSync('node ../story-website/build.js', { cwd: __dirname }).toString();
+        const buildOut = execSync('node story-website/build.js', { cwd: __dirname }).toString();
         log(buildOut);
 
         log('   Syncing to AWS...');
