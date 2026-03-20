@@ -85,6 +85,9 @@ function validateReferences(result, rawText, groundingMetadata) {
         let summaryKey = '"summary":';
         if (rawText.includes('"summary_zh":')) {
             summaryKey = '"summary_zh":';
+        } else if (rawText.includes('summary_zh')) {
+            // Flexible check for cases where model might omit quotes in some weird contexts or variations
+            summaryKey = 'summary_zh';
         }
         
         const summaryKeyIdx = rawText.indexOf(summaryKey);
@@ -237,6 +240,7 @@ TARGET STORY:
                     summary: articleData.summary_zh, // Map to internal 'summary' for re-processing
                     status: articleData.status || "ongoing",
                     isLocal: true,
+                    sources: [], // Initial empty sources
                     groundingMetadata: response.groundingMetadata
                 };
             } else {
@@ -246,6 +250,7 @@ TARGET STORY:
                     summary: articleData.summary,
                     status: articleData.status || "ongoing",
                     isLocal: false,
+                    sources: [], // Initial empty sources
                     groundingMetadata: response.groundingMetadata
                 };
             }
