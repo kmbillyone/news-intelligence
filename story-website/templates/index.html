@@ -614,15 +614,11 @@
             let tags = [];
             const isWithin24h = (new Date() - new Date(lastUpdated)) < 24 * 60 * 60 * 1000;
             if (isWithin24h && isNew) {
-                tags.push(`<span class="status-mini-label new"><i class="fa-solid fa-sparkles"></i> 新情報 New</span>`);
-            } else if (isWithin24h && !isNew) {
-                tags.push(`<span class="status-mini-label ongoing" style="background:#0066ff; color:#fff"><i class="fa-solid fa-rotate"></i> 有新進展 Updated</span>`);
+                tags.push(`<span class="status-mini-label new"><i class="fa-solid fa-fire-flame-curved"></i> 新情報 New</span>`);
             }
             
             if (status === 'escalating') {
                 tags.push(`<span class="status-mini-label escalating"><i class="fa-solid fa-arrow-trend-up"></i> 事態升溫 Escalating</span>`);
-            } else {
-                tags.push(`<span class="status-mini-label ongoing"><i class="fa-solid fa-check"></i> 持續追蹤 Ongoing</span>`);
             }
             return tags.join('');
         }
