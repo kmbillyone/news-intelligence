@@ -597,7 +597,7 @@
                 if (hash) {
                     const parts = hash.split(':');
                     const sIdx = allStories.findIndex(s => s.story_id === parts[0]);
-                    if (sIdx !== -1) { showDetail(sIdx, parts[1]); return; }
+                    if (sIdx !== -1) { await showDetail(sIdx, parts[1]); return; }
                 }
                 showIndex();
             } catch (err) { console.error(err); }
@@ -748,8 +748,22 @@
             }).join('');
         }
 
-        function showDetail(sIdx, targetDate = null) {
-            const s = allStories[sIdx];
+        async function showDetail(sIdx, targetDate = null) {
+            let s = allStories[sIdx];
+            
+            // If timeline is missing, fetch full story data
+            if (!s.timeline) {
+                try {
+                    const r = await fetch(`stories/${s.story_id}.json?v=${new Date().getTime()}`);
+                    const fullData = await r.json();
+                    allStories[sIdx] = { ...s, ...fullData };
+                    s = allStories[sIdx];
+                } catch (err) {
+                    console.error('Failed to load story detail', err);
+                    return;
+                }
+            }
+
             const entry = targetDate ? s.timeline.find(t => t.date === targetDate) || s.timeline[0] : s.timeline[0];
             window.location.hash = s.story_id + ':' + entry.date;
             document.getElementById('index-view').style.display = 'none';
