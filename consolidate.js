@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { Pool } = require('pg');
 const { execSync } = require('child_process');
 const { geminiCLI, geminiGroundingRadarPython, geminiGroundingWithMetadata } = require('./modules/geminiHelper');
@@ -140,7 +141,40 @@ function validateReferences(result, rawText, groundingMetadata) {
     return true;
 }
 
-async function fetchThumbnails(urls) {
+async function downloadImage(url, storyId) {
+    try {
+        const thumbDir = path.join(__dirname, 'story-website/public/thumbnails');
+        if (!fs.existsSync(thumbDir)) fs.mkdirSync(thumbDir, { recursive: true });
+
+        // Create a unique filename based on URL hash
+        const hash = crypto.createHash('md5').update(url).digest('hex');
+        const ext = path.extname(new URL(url).pathname) || '.jpg';
+        const filename = `${storyId}_${hash}${ext}`;
+        const filePath = path.join(thumbDir, filename);
+
+        // Skip if already exists
+        if (fs.existsSync(filePath)) {
+            return `thumbnails/${filename}`;
+        }
+
+        console.log(`   ⬇️ Downloading thumbnail: ${url}`);
+        execSync(`curl -sL --max-time 15 -o "${filePath}" "${url}"`, { timeout: 20000 });
+        
+        // Basic check if file is valid (not empty)
+        const stats = fs.statSync(filePath);
+        if (stats.size < 100) {
+            fs.unlinkSync(filePath);
+            return null;
+        }
+
+        return `thumbnails/${filename}`;
+    } catch (e) {
+        console.warn(`   ⚠️ Download failed for ${url}: ${e.message}`);
+        return null;
+    }
+}
+
+async function fetchThumbnails(urls, storyId) {
     let found = [];
     for (const url of urls.slice(0, 3)) {
         try {
@@ -149,7 +183,8 @@ async function fetchThumbnails(urls) {
             const cmd = `curl -sL --max-time 10 "${url}" | grep -oE '<meta [^>]*property="og:image"[^>]*content="([^"]+)"' | head -1 | sed -E 's/.*content="([^"]+)".*/\\1/'`;
             const imgUrl = execSync(cmd, { timeout: 15000 }).toString().trim();
             if (imgUrl && imgUrl.startsWith('http')) {
-                found.push(imgUrl);
+                const localPath = await downloadImage(imgUrl, storyId);
+                if (localPath) found.push(localPath);
             }
         } catch (e) {
             console.warn(`   ⚠️ Thumbnail fetch failed for ${url}: ${e.message}`);
@@ -276,7 +311,7 @@ TARGET STORY:
         } else {
             if (result.sources && result.sources.length > 0) {
                 const urls = result.sources.map(s => s.url);
-                result.thumbnails = await fetchThumbnails(urls);
+                result.thumbnails = await fetchThumbnails(urls, story.story_id);
             }
             await saveTimeline(story.story_id, result);
         }
