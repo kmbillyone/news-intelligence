@@ -17,6 +17,8 @@ async function build() {
     `);
 
     const stories = [];
+    const fullStoryData = [];
+
     for (const story of storyRes.rows) {
         const timelineRes = await pool.query(`
             SELECT title, title_zh, sub_title, sub_title_zh, summary, summary_zh, date, story_status_id as status, thumbnails, grounding_supports, updated_at
@@ -49,12 +51,30 @@ async function build() {
                 continue;
             }
 
+            // Summary for index page: no full timeline, just basic info and latest entry
             stories.push({
-                ...story,
-                timeline: timeline,
+                story_id: story.story_id,
+                label: story.label,
+                label_zh: story.label_zh,
+                category_id: story.category_id,
+                last_updated: story.last_updated,
+                interest_score: story.interest_score,
+                is_hot: story.is_hot,
                 isNew: timeline.length === 1,
-                ...latest,
-                date: latest.date
+                title: latest.title,
+                title_zh: latest.title_zh,
+                sub_title: latest.sub_title,
+                sub_title_zh: latest.sub_title_zh,
+                date: latest.date,
+                status: latest.status,
+                thumbnails: latest.thumbnails,
+                timelineCount: timeline.length
+            });
+
+            // Full story data for separate JSON files
+            fullStoryData.push({
+                ...story,
+                timeline: timeline
             });
         }
         
@@ -64,8 +84,16 @@ async function build() {
     const topTheme = stories.find(s => s.is_hot) || (stories.length > 0 ? stories[0] : null);
 
     const pub = path.join(__dirname, 'public');
+    const storiesDir = path.join(pub, 'stories');
     if (!fs.existsSync(pub)) fs.mkdirSync(pub, { recursive: true });
+    if (!fs.existsSync(storiesDir)) fs.mkdirSync(storiesDir, { recursive: true });
     
+    // 2. Write Individual Story Files
+    console.log('📄 Writing individual story data files...');
+    for (const data of fullStoryData) {
+        fs.writeFileSync(path.join(storiesDir, `${data.story_id}.json`), JSON.stringify(data));
+    }
+
     // 3. Fetch Weather
     console.log('🌤️ Fetching weather data...');
     let weather = null;
