@@ -204,8 +204,9 @@ async function processStory(story) {
     
     if (isLocal) {
         languageRequirement = `
+- **Search and Grounding Instruction**: You MUST perform a fresh search to find the latest specific details about this story. Use grounding to cite your sources.
 - **Direct Language Requirement**: The story is under Hong Kong Local News/Entertainment. You MUST write the "title_zh", "sub_title_zh", and "summary_zh" DIRECTLY in Traditional Chinese (Hong Kong style).
-- Do NOT provide English versions for these fields if they are local stories.`;
+- **Format**: Return the result as a JSON object. Ensure grounding references are used to support the facts in the summary.`;
         jsonStructure = `
 {
 	"title_zh": "繁體中文標題",
@@ -255,7 +256,11 @@ TARGET STORY:
         try {
             const response = await geminiGroundingWithMetadata(prompt);
             
-            if (response && response.text && response.text.includes("NO_NEW_DEVELOPMENTS")) {
+            if (!response || !response.text) {
+                throw new Error("Empty response from Gemini.");
+            }
+
+            if (response.text.includes("NO_NEW_DEVELOPMENTS")) {
                 result = { summary: "NO_NEW_DEVELOPMENTS", status: "stable", sources: [] };
                 break;
             }
