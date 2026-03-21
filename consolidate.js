@@ -198,6 +198,7 @@ async function processStory(story) {
     const history = await getStoryHistory(story.story_id);
     
     const isLocal = story.category_id === 'local_news' || story.category_id === 'local_entertainment';
+    const model = isLocal ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
     
     let languageRequirement = '';
     let jsonStructure = '';
@@ -252,9 +253,9 @@ TARGET STORY:
 
     while (attempts < maxRetries) {
         attempts++;
-        console.log(`   Attempt ${attempts} to fetch data with grounding metadata...`);
+        console.log(`   Attempt ${attempts} to fetch data with grounding metadata using ${model}...`);
         try {
-            const response = await geminiGroundingWithMetadata(prompt);
+            const response = await geminiGroundingWithMetadata(prompt, model);
             
             if (!response || !response.text) {
                 throw new Error("Empty response from Gemini.");
