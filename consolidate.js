@@ -253,13 +253,17 @@ TARGET STORY:
 
     while (attempts < maxRetries) {
         attempts++;
-        // Fallback to gemini-3-pro-preview on retry if isLocal
-        const model = (attempts > 1 && isLocal) ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
+        // Use gemini-3-flash-preview for all attempts to conserve quota as requested
+        const model = 'gemini-3-flash-preview';
         console.log(`   Attempt ${attempts} to fetch data with grounding metadata using ${model}...`);
         
         try {
             const response = await geminiGroundingWithMetadata(prompt, model);
             
+            if (response && response.error) {
+                throw new Error(`Gemini API Error: ${response.error}`);
+            }
+
             if (!response || !response.text) {
                 throw new Error("Empty response from Gemini.");
             }
