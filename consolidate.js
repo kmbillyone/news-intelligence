@@ -42,7 +42,7 @@ async function getStoryHistory(storyId, days = 5) {
         ORDER BY date DESC 
         LIMIT $2
     `, [storyId, days]);
-    return res.rows.map(row => `${row.date.toISOString().split('T')[0]}: ${row.summary.substring(0, 100)}...`).join('\n');
+    return res.rows.map(row => `${row.date.toISOString().split('T')[0]}: ${(row.summary || row.summary_zh || '').substring(0, 100)}...`).join('\n');
 }
 
 /**
