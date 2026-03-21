@@ -36,7 +36,7 @@ async function getTopStories(limitPerCategory = 6) {
 
 async function getStoryHistory(storyId, days = 5) {
     const res = await pool.query(`
-        SELECT date, summary 
+        SELECT date, summary, summary_zh 
         FROM story_timeline 
         WHERE story_id = $1 
         ORDER BY date DESC 
@@ -56,7 +56,7 @@ function validateReferences(result, rawText, groundingMetadata) {
     
     if (!groundingMetadata || !Array.isArray(groundingMetadata.groundingChunks) || groundingMetadata.groundingChunks.length === 0) {
         console.warn(`   ⚠️ No grounding sources were found in metadata.`);
-        return true; 
+        return false; // Return false to trigger retry/fallback
     }
     
     // 1. Extract and Renumber Sources
@@ -198,16 +198,16 @@ async function processStory(story) {
     const history = await getStoryHistory(story.story_id);
     
     const isLocal = story.category_id === 'local_news' || story.category_id === 'local_entertainment';
-    const model = isLocal ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
     
     let languageRequirement = '';
     let jsonStructure = '';
     
     if (isLocal) {
         languageRequirement = `
-- **Search and Grounding Instruction**: You MUST perform a fresh search to find the latest specific details about this story. Use grounding to cite your sources.
-- **Direct Language Requirement**: The story is under Hong Kong Local News/Entertainment. You MUST write the "title_zh", "sub_title_zh", and "summary_zh" DIRECTLY in Traditional Chinese (Hong Kong style).
-- **Format**: Return the result as a JSON object. Ensure grounding references are used to support the facts in the summary.`;
+- **Search Instruction**: Use Google Search to find the latest specific details about this story. You can search in both English and Chinese.
+- **Grounding Requirement**: You MUST include grounding references in your response. Ensure all factual claims in the summary are cited using grounding metadata.
+- **Direct Language Requirement**: The story is under Hong Kong Local News/Entertainment. You MUST write the final "title_zh", "sub_title_zh", and "summary_zh" in Traditional Chinese (Hong Kong style).
+- Do NOT provide English versions for the final text fields if they are local stories.`;
         jsonStructure = `
 {
 	"title_zh": "繁體中文標題",
@@ -253,7 +253,10 @@ TARGET STORY:
 
     while (attempts < maxRetries) {
         attempts++;
+        // Fallback to gemini-3-pro-preview on retry if isLocal
+        const model = (attempts > 1 && isLocal) ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
         console.log(`   Attempt ${attempts} to fetch data with grounding metadata using ${model}...`);
+        
         try {
             const response = await geminiGroundingWithMetadata(prompt, model);
             
@@ -303,8 +306,9 @@ TARGET STORY:
                 }
                 break;
             } else {
-                console.warn(`   ⚠️ Validation failed (invalid structure or references).`);
+                console.warn(`   ⚠️ Validation failed (invalid structure or missing grounding sources).`);
                 result = null;
+                // If it failed because of missing sources, attempts++ will happen and we'll retry with Pro
             }
         } catch (e) {
             console.error(`   ❌ Attempt ${attempts} failed: ${e.message}`);
