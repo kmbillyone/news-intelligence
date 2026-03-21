@@ -253,8 +253,8 @@ TARGET STORY:
 
     while (attempts < maxRetries) {
         attempts++;
-        // Use gemini-3-flash-preview for all attempts to conserve quota as requested
-        const model = 'gemini-3-flash-preview';
+        // Use gemini-2.5-flash to avoid 429 on gemini-3.1-pro
+        const model = 'gemini-2.5-flash';
         console.log(`   Attempt ${attempts} to fetch data with grounding metadata using ${model}...`);
         
         try {
@@ -312,7 +312,6 @@ TARGET STORY:
             } else {
                 console.warn(`   ⚠️ Validation failed (invalid structure or missing grounding sources).`);
                 result = null;
-                // If it failed because of missing sources, attempts++ will happen and we'll retry with Pro
             }
         } catch (e) {
             console.error(`   ❌ Attempt ${attempts} failed: ${e.message}`);
